@@ -1,0 +1,123 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+
+}
+
+// User model for authentication and author management
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(EDITOR)
+  posts     Post[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Category model for news categorization
+model Category {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  slug      String   @unique
+  posts     Post[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Post model for news articles
+model Post {
+  id          String    @id @default(uuid())
+  title       String
+  slug        String    @unique
+  content     String    @db.Text
+  excerpt     String?
+  
+  // Images support - first image is cover photo
+  images      PostImage[]
+  
+  // Publishing workflow
+  status      PostStatus @default(DRAFT)
+  publishedAt DateTime?
+  
+  // Flags - using enum array instead of multiple booleans
+  flags       PostFlag[]
+  
+  // Tags for SEO and organization
+  tags        Tag[]
+  
+  // Relationships
+  authorId    String
+  author      User      @relation(fields: [authorId], references: [id])
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id])
+  
+  // Comments
+  comments    Comment[]
+  
+  // Analytics
+  views       Int       @default(0)
+  
+  // Metadata
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// PostImage model for multiple images per article
+model PostImage {
+  id        String   @id @default(uuid())
+  url       String
+  altText   String?
+  position  Int      @default(0) // For ordering, 0 is cover photo
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+// Tag model for article keywords
+model Tag {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  slug      String   @unique
+  posts     Post[]
+  createdAt DateTime @default(now())
+}
+
+// Comment model for article comments
+model Comment {
+  id        String   @id @default(uuid())
+  content   String   @db.Text
+  authorName String
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Enums
+enum Role {
+  ADMIN
+  EDITOR
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum PostFlag {
+  MAIN_STORY      // For the main hero story
+  EDITORS_PICK    // Editor's picks section
+  FEATURED        // Featured stories grid
+  TRENDING        // Trending now section
+  POPULAR         // Most popular section
+  BREAKING_NEWS   // Breaking news ticker
+}
