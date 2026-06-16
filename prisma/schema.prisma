@@ -7,19 +7,60 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-
+  url      = env("DATABASE_URL")
 }
 
-// User model for authentication and author management
+// NextAuth models
+model Account {
+  id                String  @id @default(uuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// User model for authentication and author management (combined with NextAuth)
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  name      String
-  role      Role     @default(EDITOR)
-  posts     Post[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String    @id @default(uuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  password      String?   // For email/password auth
+  image         String?
+  role          Role      @default(EDITOR)
+  posts         Post[]
+  accounts      Account[]
+  sessions      Session[]
+  media         Media[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
 
 // Category model for news categorization
@@ -101,6 +142,21 @@ model Comment {
   updatedAt DateTime @updatedAt
 }
 
+// Media model for media library
+model Media {
+  id          String   @id @default(uuid())
+  url         String
+  publicId    String   @unique // Cloudinary public ID
+  filename    String
+  size        Int
+  mimeType    String
+  alt         String?
+  uploadedBy  String
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+}
+
 // Enums
 enum Role {
   ADMIN
@@ -114,10 +170,10 @@ enum PostStatus {
 }
 
 enum PostFlag {
-  MAIN_STORY      // For the main hero story
-  EDITORS_PICK    // Editor's picks section
-  FEATURED        // Featured stories grid
-  TRENDING        // Trending now section
-  POPULAR         // Most popular section
-  BREAKING_NEWS   // Breaking news ticker
+  MAIN_STORY
+  EDITORS_PICK
+  FEATURED
+  TRENDING
+  POPULAR
+  BREAKING_NEWS
 }

@@ -1,21 +1,61 @@
 "use client";
-
+ 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import logo from '../../assets/logo.jpg'
 import logoNBG from '../../assets/logoNBG.png'
-import { getAllNews, type NewsItem } from "@/lib/data";
-
+import { getAllNews } from "@/lib/data";
+ 
 export default function Header() {
+  const pathname = usePathname();
+  const isAdminLogin = pathname.includes('/admin');
+  
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<NewsItem[]>([]);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+ 
+  // If it's admin login, only show the simplified logo
+  if (isAdminLogin) {
+    return (
+      <header className="w-full bg-white">
+        <div className="container mx-auto px-4 py-10">
+          <div className="flex flex-col items-center space-y-4">
+            <Link href="/" className="group flex flex-col items-center text-center">
+              <h1 className="text-5xl font-serif font-black tracking-tighter text-gray-900 md:text-7xl">
+                PRESIDENCY <span className="text-red-700"><Image  src={logoNBG} alt="Logo" className="inline object-contain" width={200} height={100}/></span>
+              </h1>
+              <p className="mt-3 text-[11px] font-bold uppercase tracking-[0.4em] text-gray-400">
+                Reporting Facts • Valuing Truth
+              </p>
+            </Link>
+          </div>
+        </div>
+      </header>
+    );
+  }
+
+  const [categories, setCategories] = useState<{name: string, slug: string}[]>([]);
   const searchRef = useRef<HTMLDivElement>(null);
 
   const today = new Date().toLocaleDateString('en-US', { 
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
   });
+
+  useEffect(() => {
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch('/api/categories');
+      const data = await response.json();
+      setCategories(data.categories.map((cat: any) => ({ name: cat.name, slug: cat.slug })));
+    } catch (error) {
+      console.error('Failed to fetch categories:', error);
+    }
+  };
+  fetchCategories();
+}, []);
 
   useEffect(() => {
     const fetchAndFilter = async () => {
@@ -45,6 +85,12 @@ export default function Header() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const navItems = [
+    { name: "Home", href: "/" },
+    { name: "Team", href: "/team" },
+    ...categories.map(cat => ({ name: cat.name, href: `/category/${cat.slug}` }))
+  ];
 
   return (
     <header className="w-full bg-white">
@@ -79,7 +125,7 @@ export default function Header() {
             </div>
 
             {isDropdownOpen && searchResults.length > 0 && (
-              <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-100 shadow-2xl z-[100] rounded-sm py-1">
+              <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-100 shadow-2xl z-100 rounded-sm py-1">
                 <div className="max-h-96 overflow-y-auto">
                   {searchResults.map((item) => (
                     <Link 
@@ -122,12 +168,7 @@ export default function Header() {
       <nav className="sticky top-0 z-50 border-t border-b border-gray-100 bg-white/80 backdrop-blur-md">
         <div className="container mx-auto px-4">
           <div className="flex h-14 items-center justify-center space-x-10">
-            {[
-              { name: "Home", href: "/" },
-              { name: "Politics", href: "/politics" },
-              { name: "Economy", href: "/economy" },
-              { name: "Sports", href: "/sports" },
-            ].map((item) => (
+            {navItems.map((item) => (
               <Link
                 key={item.name}
                 href={item.href}

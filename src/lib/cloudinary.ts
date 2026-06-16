@@ -8,25 +8,50 @@ cloudinary.config({
   secure: true,
 });
 
+// Log configuration to verify
+console.log('Cloudinary config:', {
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  has_api_key: !!process.env.CLOUDINARY_API_KEY,
+  has_api_secret: !!process.env.CLOUDINARY_API_SECRET,
+});
+
+export async function uploadMultipleImages(
+  files: File[] | string[],
+  folder: string = 'news-articles'
+): Promise<{ url: string; publicId: string }[]> {
+  const uploadPromises = files.map(file => uploadImage(file, folder));
+  return Promise.all(uploadPromises);
+}
+
+export async function deleteImage(publicId: string): Promise<void> {
+  try {
+    await cloudinary.uploader.destroy(publicId);
+    console.log('Image deleted from Cloudinary:', publicId);
+  } catch (error) {
+    console.error('Error deleting image from Cloudinary:', error);
+    throw new Error(`Failed to delete image: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+export async function deleteMultipleImages(publicIds: string[]): Promise<void> {
+  await Promise.all(publicIds.map(id => deleteImage(id)));
+}
+
 // Upload function that preserves image extensions
 export async function uploadImage(
   file: File | string,
   folder: string = 'news-articles'
 ): Promise<{ url: string; publicId: string }> {
   try {
-    let result;
+    console.log('Uploading image:', typeof file === 'string' ? 'URL' : file.name);
+    
+    let result: any;
 
     if (typeof file === 'string') {
-      // Upload from URL (preserves original format)
+      // Upload from URL
       result = await cloudinary.uploader.upload(file, {
         folder,
         resource_type: 'image',
-        // Preserve original format to avoid extension stripping
-        format: 'auto', 
-        // Don't apply transformations that change format
-        transformation: [],
-        // Use eager transformations if needed
-        eager: [],
       });
     } else {
       // Upload from File object
@@ -37,67 +62,30 @@ export async function uploadImage(
         cloudinary.uploader.upload_stream(
           {
             folder,
-            resource_type: 'auto', // Let Cloudinary detect type
-            // Preserve original file format
-            format: 'auto',
-            // Prevent automatic optimization that strips extensions
-            transformation: [],
-            // Use filename to preserve extension
+            resource_type: 'auto',
             public_id: file.name.split('.')[0],
             use_filename: true,
             unique_filename: true,
           },
           (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
+            if (error) {
+              console.error('Cloudinary stream error:', error);
+              reject(error);
+            } else {
+              resolve(result);
+            }
           }
         ).end(buffer);
       });
     }
 
+    console.log('Upload successful:', result);
     return {
       url: result.secure_url,
       publicId: result.public_id,
     };
   } catch (error) {
-    console.error('Cloudinary upload error:', error);
-    throw new Error('Failed to upload image to Cloudinary');
+    console.error('Cloudinary upload error details:', error);
+    throw new Error(`Failed to upload image: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
-}
-
-// Upload multiple images (for carousel functionality)
-export async function uploadMultipleImages(
-  files: File[] | string[],
-  folder: string = 'news-articles'
-): Promise<{ url: string; publicId: string }[]> {
-  const uploadPromises = files.map(file => uploadImage(file, folder));
-  return Promise.all(uploadPromises);
-}
-
-// Delete image from Cloudinary
-export async function deleteImage(publicId: string): Promise<void> {
-  try {
-    await cloudinary.uploader.destroy(publicId);
-  } catch (error) {
-    console.error('Cloudinary delete error:', error);
-    throw new Error('Failed to delete image from Cloudinary');
-  }
-}
-
-// Delete multiple images
-export async function deleteMultipleImages(publicIds: string[]): Promise<void> {
-  const deletePromises = publicIds.map(id => deleteImage(id));
-  await Promise.all(deletePromises);
-}
-
-// Get optimized image URL (for display)
-export function getOptimizedImageUrl(
-  publicId: string,
-  transformations: Record<string, any> = {}
-): string {
-  return cloudinary.url(publicId, {
-    transformation: transformations,
-    fetch_format: 'auto', // Auto-select best format (WebP, AVIF, etc.)
-    quality: 'auto', // Auto quality for best compression
-  });
 }

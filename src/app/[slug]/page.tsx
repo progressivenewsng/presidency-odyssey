@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { getAllNews, getNewsBySlug } from "@/lib/data";
 import { notFound } from "next/navigation";
 import ReadingProgress from "@/components/layout/ReadingProgress";
@@ -31,7 +32,16 @@ export default async function DynamicPage({
           {filteredNews.map((item) => (
             <Link href={`/${item.slug}`} key={item.id} className="group cursor-pointer">
               <div className="w-full h-64 bg-slate-100 rounded-md mb-6 overflow-hidden relative shadow-sm">
-                <div className="w-full h-full bg-slate-200 group-hover:scale-105 transition-transform duration-500 absolute inset-0"></div>
+                {item.imageUrl ? (
+                  <Image
+                    src={item.imageUrl}
+                    alt={item.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-slate-200 group-hover:scale-105 transition-transform duration-500 absolute inset-0"></div>
+                )}
               </div>
               <h3 className="text-xl font-serif font-bold leading-tight text-gray-900 group-hover:text-red-700 transition-colors">
                 {item.title}
@@ -57,6 +67,19 @@ export default async function DynamicPage({
     <>
       <ReadingProgress />
       <article className="container mx-auto px-4 py-16 max-w-4xl">
+        {/* Hero Image */}
+        {article.imageUrl && (
+          <div className="relative w-full h-[400px] md:h-[500px] mb-10 rounded-lg overflow-hidden">
+            <Image
+              src={article.imageUrl}
+              alt={article.title}
+              fill
+              className="object-cover"
+              priority
+            />
+          </div>
+        )}
+        
         <header className="mb-10">
           <span className="text-red-700 text-xs font-bold tracking-widest uppercase mb-4 block">
             {article.category}

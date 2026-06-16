@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { getMainStory, getEditorsPicks, getFeaturedStories, getTrendingStories, getPopularStories } from "@/lib/data";
+import Image from "next/image";
 
 export default async function Home() {
-
+  console.log('Page loaded, fetching real data...');
   
   const mainStory = await getMainStory();
   const editorsPicks = await getEditorsPicks();
@@ -19,10 +20,19 @@ export default async function Home() {
         <div className="lg:col-span-2">
           {mainStory && (
             <Link href={`/${mainStory.slug}`} className="group block h-full">
-              <div className="relative w-full h-[450px] lg:h-[600px] bg-slate-200 overflow-hidden shadow-md">
-                 <div className="absolute inset-0 group-hover:scale-105 transition-transform duration-700 bg-slate-300 image-reveal"></div>
+              <div className="relative w-full h-112.5 lg:h-150 bg-slate-200 overflow-hidden shadow-md">
+                {mainStory.imageUrl ? (
+                  <Image
+                    src={mainStory.imageUrl}
+                    alt={mainStory.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                ) : (
+                  <div className="absolute inset-0 group-hover:scale-105 transition-transform duration-700 bg-slate-300 image-reveal"></div>
+                )}
                  
-                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/70 to-transparent p-8">
+                 <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black via-black/70 to-transparent p-8">
                    <span className="bg-red-700 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 mb-4 inline-block">
                      {mainStory.category}
                    </span>
@@ -45,7 +55,7 @@ export default async function Home() {
           <div className="flex items-center space-x-3 mb-6">
             <div className="h-1 w-6 bg-red-700"></div>
             <h3 className="text-[11px] font-black uppercase tracking-widest text-gray-900">
-              Editor’s Picks
+              Editor's Picks
             </h3>
           </div>
           
@@ -53,7 +63,16 @@ export default async function Home() {
             {editorsPicks.map((item) => (
               <Link href={`/${item.slug}`} key={item.id} className="flex gap-4 group cursor-pointer border-b border-gray-100 pb-6 last:border-0 hover:pl-2 transition-all duration-300">
                 <div className="w-20 h-20 shrink-0 bg-slate-200 rounded-md overflow-hidden relative">
-                  <div className="absolute inset-0 bg-slate-300 group-hover:scale-105 transition-transform duration-500"></div>
+                  {item.imageUrl ? (
+                    <Image
+                      src={item.imageUrl}
+                      alt={item.title}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-slate-300 group-hover:scale-105 transition-transform duration-500"></div>
+                  )}
                 </div>
                 <div className="flex-1">
                   <span className="text-red-700 text-[10px] uppercase font-bold tracking-widest block mb-1">{item.category}</span>
@@ -81,7 +100,16 @@ export default async function Home() {
           {featuredStories.map((item) => (
             <Link href={`/${item.slug}`} key={item.id} className="flex flex-col group cursor-pointer hover:-translate-y-1 transition-transform duration-300">
               <div className="w-full h-48 bg-slate-100 rounded-md mb-4 overflow-hidden relative shadow-sm group-hover:shadow-md transition-shadow duration-300">
-                 <div className="w-full h-full bg-slate-200 group-hover:scale-105 transition-transform duration-500 absolute inset-0"></div>
+                {item.imageUrl ? (
+                  <Image
+                    src={item.imageUrl}
+                    alt={item.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-slate-200 group-hover:scale-105 transition-transform duration-500 absolute inset-0"></div>
+                )}
               </div>
               <span className="text-red-700 text-[10px] font-bold tracking-widest uppercase mb-2">{item.category}</span>
               <h4 className="text-lg font-serif font-bold leading-snug text-gray-900 group-hover:text-red-700 transition-colors line-clamp-3">
@@ -109,7 +137,16 @@ export default async function Home() {
             {trendingStories.map((item) => (
               <Link href={`/${item.slug}`} key={item.id} className="group cursor-pointer hover:-translate-y-1 transition-transform duration-300">
                 <div className="w-full h-48 bg-slate-100 rounded-md mb-4 overflow-hidden relative shadow-sm group-hover:shadow-md transition-shadow duration-300">
-                  <div className="w-full h-full bg-slate-200 group-hover:scale-105 transition-transform duration-500 absolute inset-0"></div>
+                  {item.imageUrl ? (
+                    <Image
+                      src={item.imageUrl}
+                      alt={item.title}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-slate-200 group-hover:scale-105 transition-transform duration-500 absolute inset-0"></div>
+                  )}
                 </div>
                 <span className="text-red-700 text-[10px] font-bold tracking-widest uppercase mb-2 block">{item.category}</span>
                 <h4 className="text-xl font-serif font-bold leading-snug text-gray-900 group-hover:text-red-700 transition-colors line-clamp-2">
@@ -136,7 +173,16 @@ export default async function Home() {
                    {index + 1}
                  </span>
                  <div className="w-20 h-20 shrink-0 bg-slate-200 rounded-md z-10 overflow-hidden relative">
-                   <div className="absolute inset-0 bg-slate-300 group-hover:scale-105 transition-transform duration-500"></div>
+                   {item.imageUrl ? (
+                    <Image
+                      src={item.imageUrl}
+                      alt={item.title}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-slate-300 group-hover:scale-105 transition-transform duration-500"></div>
+                  )}
                  </div>
                  <div className="z-10 pt-1 flex-1">
                    <h4 className="text-sm font-bold font-serif leading-snug text-gray-900 group-hover:text-red-700 transition-colors line-clamp-3">
