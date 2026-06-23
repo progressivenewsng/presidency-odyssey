@@ -28,10 +28,7 @@ export async function GET() {
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -39,17 +36,21 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id } = await params;
     const body = await request.json();
+    const { id, role, password } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+    }
 
     const updateData: any = {};
     
-    if (body.role) {
-      updateData.role = body.role;
+    if (role) {
+      updateData.role = role;
     }
     
-    if (body.password) {
-      updateData.password = body.password;
+    if (password) {
+      updateData.password = password;
     }
 
     const user = await prisma.user.update({
