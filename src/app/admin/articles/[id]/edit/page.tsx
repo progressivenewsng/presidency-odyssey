@@ -19,6 +19,7 @@ export default function EditArticlePage() {
     categoryId: '',
     flags: [] as string[],
     tags: [] as string[],
+    scheduledFor: '',
   });
 
   const [selectedImages, setSelectedImages] = useState<any[]>([]);
@@ -42,6 +43,7 @@ export default function EditArticlePage() {
           categoryId: data.article.categoryId || '',
           flags: data.article.flags || [],
           tags: data.article.tags?.map((t: any) => t.name) || [],
+          scheduledFor: data.article.scheduledFor || '',
         });
         setSelectedImages(data.article.images || []);
       }
@@ -92,40 +94,41 @@ export default function EditArticlePage() {
     e.preventDefault();
     
     if (!formData.title || !formData.content || !formData.categoryId) {
-      alert('Please fill in all required fields');
-      return;
-    }
-
-    if (selectedImages.length === 0) {
-      alert('Please select at least one image');
-      return;
+        alert('Please fill in all required fields');
+        return;
     }
 
     setLoading(true);
     try {
-      const response = await fetch(`/api/admin/articles/${articleId}`, {
+        const response = await fetch(`/api/admin/articles/${articleId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...formData,
-          images: selectedImages.map(img => ({
+            ...formData,
+            images: selectedImages.map(img => ({
             url: img.url,
             altText: img.filename,
             position: img.position || 0
-          }))
+            }))
         }),
-      });
+        });
 
-      if (response.ok) {
-        alert('Article updated successfully!');
-        router.push('/admin/articles');
-      }
+        if (response.ok) {
+        const data = await response.json();
+        // Redirect to success page with article data
+        router.push(
+            `/admin/articles/success?article=${encodeURIComponent(JSON.stringify(data.article || formData))}&scheduled=${!!formData.scheduledFor}`
+        );
+        } else {
+        alert('Failed to update article');
+        }
     } catch (error) {
-      alert('Failed to update article');
+        console.error(error);
+        alert('Failed to update article');
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+    };
 
   const toggleFlag = (flag: string) => {
     setFormData(prev => ({

@@ -15,20 +15,44 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams;
     const search = searchParams.get('search') || '';
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '8');
 
-    const images = await prisma.media.findMany({
-      where: search ? {
-        filename: {
-          contains: search,
-          mode: 'insensitive'
-        }
-      } : {},
-      orderBy: {
-        createdAt: 'desc'
+    const skip = (page - 1) * limit;
+
+    const [images, total] = await Promise.all([
+      prisma.media.findMany({
+        where: search ? {
+          filename: {
+            contains: search,
+            mode: 'insensitive'
+          }
+        } : {},
+        orderBy: {
+          createdAt: 'desc'
+        },
+        skip,
+        take: limit
+      }),
+      prisma.media.count({
+        where: search ? {
+          filename: {
+            contains: search,
+            mode: 'insensitive'
+          }
+        } : {}
+      })
+    ]);
+
+    return NextResponse.json({ 
+      images,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit)
       }
     });
-
-    return NextResponse.json({ images });
 
   } catch (error) {
     console.error('Fetch error:', error);

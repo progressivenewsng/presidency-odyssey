@@ -88,8 +88,8 @@ export default function Header() {
 
   const navItems = [
     { name: "Home", href: "/" },
+    ...categories.map(cat => ({ name: cat.name, href: `/category/${cat.slug}` })),
     { name: "Team", href: "/team" },
-    ...categories.map(cat => ({ name: cat.name, href: `/category/${cat.slug}` }))
   ];
 
   return (

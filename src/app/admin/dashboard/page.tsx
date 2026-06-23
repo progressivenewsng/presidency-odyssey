@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import AdminSidebar from "@/components/layout/admin/AdminSidebar";
+import { prisma } from "@/lib/prisma";
 
 export default async function AdminDashboard() {
   const session = await getServerSession(authOptions);
@@ -9,6 +10,61 @@ export default async function AdminDashboard() {
   if (!session) {
     redirect("/admin/login");
   }
+
+  // Fetch stats directly from database
+  const [
+    totalArticles,
+    publishedCount,
+    archivedCount,
+    categoriesCount,
+    tagsCount,
+    mediaCount,
+    staffCount,
+    recentArticles,
+    articlesByCategory
+  ] = await Promise.all([
+    prisma.post.count(),
+    prisma.post.count({ where: { status: 'PUBLISHED' } }),
+    prisma.post.count({ where: { status: 'ARCHIVED' } }),
+    prisma.category.count(),
+    prisma.tag.count(),
+    prisma.media.count(),
+    prisma.user.count(),
+    prisma.post.findMany({
+      where: { status: 'PUBLISHED' },
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        createdAt: true,
+        category: {
+          select: { name: true }
+        }
+      }
+    }),
+    prisma.category.findMany({
+      select: {
+        name: true,
+        _count: {
+          select: { posts: true }
+        }
+      }
+    })
+  ]);
+
+  const stats = {
+    totalArticles,
+    publishedCount,
+    archivedCount,
+    categoriesCount,
+    tagsCount,
+    mediaCount,
+    staffCount,
+    recentArticles,
+    articlesByCategory
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -34,32 +90,76 @@ export default async function AdminDashboard() {
 
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-white rounded-lg shadow p-6  ">
               <h3 className="text-gray-500 text-sm font-medium">Total Articles</h3>
-              <p className="text-3xl font-bold text-gray-900 mt-2">9</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">{stats?.totalArticles || 0}</p>
             </div>
-            <div className="bg-white rounded-lg shadow p-6">
+
+            <div className="bg-white rounded-lg shadow p-6  ">
               <h3 className="text-gray-500 text-sm font-medium">Published</h3>
-              <p className="text-3xl font-bold text-green-600 mt-2">9</p>
+              <p className="text-3xl font-bold text-green-600 mt-2">{stats?.publishedCount || 0}</p>
             </div>
-            <div className="bg-white rounded-lg shadow p-6">
+
+            <div className="bg-white rounded-lg shadow p-6  ">
+              <h3 className="text-gray-500 text-sm font-medium">Archived</h3>
+              <p className="text-3xl font-bold text-red-600 mt-2">{stats?.archivedCount || 0}</p>
+            </div>
+
+            <div className="bg-white rounded-lg shadow p-6  ">
               <h3 className="text-gray-500 text-sm font-medium">Categories</h3>
-              <p className="text-3xl font-bold text-blue-600 mt-2">4</p>
+              <p className="text-3xl font-bold text-purple-600 mt-2">{stats?.categoriesCount || 0}</p>
             </div>
-            <div className="bg-white rounded-lg shadow p-6">
+
+            <div className="bg-white rounded-lg shadow p-6 ">
+              <h3 className="text-gray-500 text-sm font-medium">Tags</h3>
+              <p className="text-3xl font-bold text-pink-600 mt-2">{stats?.tagsCount || 0}</p>
+            </div>
+
+            <div className="bg-white rounded-lg shadow p-6 ">
+              <h3 className="text-gray-500 text-sm font-medium">Media</h3>
+              <p className="text-3xl font-bold text-indigo-600 mt-2">{stats?.mediaCount || 0}</p>
+            </div>
+
+            <div className="bg-white rounded-lg shadow p-6 ">
               <h3 className="text-gray-500 text-sm font-medium">Staff Members</h3>
-              <p className="text-3xl font-bold text-purple-600 mt-2">2</p>
+              <p className="text-3xl font-bold text-teal-600 mt-2">{stats?.staffCount || 0}</p>
             </div>
           </div>
 
-          {/* Recent Activity */}
-          <div className="bg-white rounded-lg shadow">
-            <div className="p-6 border-b">
-              <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
+          {/* Articles by Category */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div className="bg-white rounded-lg shadow">
+              <div className="p-6 border-b">
+                <h2 className="text-lg font-semibold text-gray-900">Articles by Category</h2>
+              </div>
+              <div className="p-6">
+                <div className="space-y-4">
+                  {stats?.articlesByCategory?.map((category: any) => (
+                    <div key={category.name} className="flex items-center justify-between">
+                      <span className="text-gray-700">{category.name}</span>
+                      <div className="flex items-center gap-3">
+                        <div className="w-32 bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-blue-500 h-2 rounded-full"
+                            style={{
+                              width: `${stats.totalArticles > 0 ? (category._count.posts / stats.totalArticles) * 100 : 0}%`
+                            }}
+                          />
+                        </div>
+                        <span className="text-sm font-medium text-gray-900 w-8 text-right">
+                          {category._count.posts}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                  {!stats?.articlesByCategory || stats.articlesByCategory.length === 0 ? (
+                    <p className="text-gray-500 text-center py-4">No category data available</p>
+                  ) : null}
+                </div>
+              </div>
             </div>
-            <div className="p-6">
-              <p className="text-gray-600">No recent activity to display.</p>
-            </div>
+
+           
           </div>
         </main>
       </div>

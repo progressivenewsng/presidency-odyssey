@@ -6,17 +6,17 @@ export async function GET() {
     // Find scheduled articles that should now be published
     const scheduledArticles = await prisma.post.findMany({
       where: {
-        status: 'PUBLISHED',
+        status: 'SCHEDULED',
         publishedAt: { lte: new Date() }
       },
       include: { author: true, category: true, images: true, tags: true }
     });
 
-    // Publish them
+    // Publish them by changing status from SCHEDULED to PUBLISHED
     for (const article of scheduledArticles) {
       await prisma.post.update({
         where: { id: article.id },
-        data: { publishedAt: new Date() }
+        data: { status: 'PUBLISHED' }
       });
     }
 

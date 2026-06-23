@@ -1,15 +1,16 @@
 "use client";
 
-import { useState } from 'react';
-import Image from 'next/image';
-import { motion, AnimatePresence } from 'framer-motion';
-import { RefinedTypography } from '@/components/layout/RefinedTypography';
+import { useState, useRef } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { motion, useInView } from "framer-motion";
 
 interface TeamMember {
   name: string;
   role: string;
   bio: string;
   image: string;
+  initials: string;
 }
 
 const teamMembers: TeamMember[] = [
@@ -17,149 +18,358 @@ const teamMembers: TeamMember[] = [
     name: "Dr. Sarah Johnson",
     role: "Editor-in-Chief",
     bio: "Award-winning journalist with over 15 years of experience covering politics and international affairs. Former correspondent for major international news organizations.",
-    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop"
+    image:
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=600&h=800&fit=crop",
+    initials: "SJ",
   },
   {
     name: "Michael Chen",
     role: "Senior Editor",
     bio: "Expert in economic policy analysis and business journalism. Previously served as financial analyst at leading investment firms before transitioning to journalism.",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop"
+    image:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&h=800&fit=crop",
+    initials: "MC",
   },
   {
     name: "Amara Okafor",
     role: "Politics Editor",
-    bio: "Distinguished political analyst specializing in African governance and policy. Regular contributor to international think tanks and policy journals.",
-    image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&h=400&fit=crop"
+    bio: "Distinguished political analyst specialising in African governance and policy. Regular contributor to international think tanks and policy journals.",
+    image:
+      "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=600&h=800&fit=crop",
+    initials: "AO",
   },
   {
     name: "David Thompson",
     role: "Sports Editor",
     bio: "Veteran sports journalist with deep expertise in Nigerian and international sports. Former professional athlete turned award-winning sports writer.",
-    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop"
-  }
+    image:
+      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=600&h=800&fit=crop",
+    initials: "DT",
+  },
 ];
 
-export default function TeamPage() {
+function MemberCard({
+  member,
+  index,
+}: {
+  member: TeamMember;
+  index: number;
+}) {
+  const [hovered, setHovered] = useState(false);
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-60px" });
+
   return (
-    <div className="min-h-screen bg-[#fafafa] text-slate-900">
-      {/* Minimalist Hero Section */}
-      <div className="relative border-b border-gray-100 bg-white">
-        <div className="container mx-auto px-4 py-24 lg:py-32">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="max-w-4xl"
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 40 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.6, delay: index * 0.12, ease: [0.25, 0.46, 0.45, 0.94] }}
+      className="group"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {/* Portrait */}
+      <div className="relative overflow-hidden" style={{ aspectRatio: "3/4" }}>
+        {/* Image */}
+        <Image
+          src={member.image}
+          alt={member.name}
+          fill
+          className="object-cover transition-all duration-700 ease-out"
+          style={{
+            filter: hovered ? "grayscale(0%) brightness(0.88)" : "grayscale(35%) brightness(1)",
+            transform: hovered ? "scale(1.05)" : "scale(1)",
+          }}
+          sizes="(max-width: 768px) 100vw, 25vw"
+        />
+
+        {/* Permanent bottom gradient for name visibility */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(to top, rgba(10,10,10,0.82) 0%, rgba(10,10,10,0.3) 35%, transparent 60%)",
+          }}
+        />
+
+        {/* Name + role always visible at bottom */}
+        <div
+          className="absolute bottom-0 left-0 right-0 px-5 pb-5 transition-all duration-500"
+          style={{
+            transform: hovered ? "translateY(-90px)" : "translateY(0)",
+          }}
+        >
+          <p
+            className="text-xs font-semibold uppercase tracking-widest mb-1"
+            style={{ color: "#E8786A", letterSpacing: "0.18em" }}
           >
-            <span className="text-red-700 text-xs font-black uppercase tracking-[0.3em] mb-6 block">
-              Our Collective
-            </span>
-            <RefinedTypography 
-              text="The Minds Behind The Odyssey" 
-              className="text-5xl md:text-8xl font-serif font-bold text-slate-900 mb-8 leading-[0.9]"
-            />
-            <p className="text-xl md:text-2xl text-slate-500 font-serif italic max-w-2xl leading-relaxed">
-              Dedicated to reporting facts and valuing the truth through rigorous journalistic standards.
-            </p>
-          </motion.div>
+            {member.role}
+          </p>
+          <h3
+            className="font-serif text-xl font-bold text-white leading-tight"
+          >
+            {member.name}
+          </h3>
         </div>
-      </div>
 
-      {/* Leadership Section */}
-      <div className="container mx-auto px-4 py-24">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-12 gap-16 items-start mb-32">
-            <div className="lg:col-span-7 relative">
-              <div className="aspect-[16/10] overflow-hidden bg-slate-100 grayscale hover:grayscale-0 transition-all duration-1000">
-                <Image
-                  src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=600&h=600&fit=crop"
-                  alt="Leadership"
-                  fill
-                  className="object-cover scale-105"
-                />
-              </div>
-              <div className="absolute -bottom-8 -right-8 w-64 h-64 border border-red-700/10 -z-10"></div>
-            </div>
-            <div className="lg:col-span-5 pt-4">
-              <h2 className="text-4xl font-serif font-bold text-slate-900 mb-8 leading-tight">
-                A Tradition of Unbiased Inquiry.
-              </h2>
-              <p className="text-lg text-slate-600 mb-8 leading-relaxed font-sans">
-                Our leadership team brings decades of combined experience from some of the world's most respected news organizations. We are dedicated to delivering accurate, unbiased journalism that informs and empowers our readers.
-              </p>
-              <div className="grid grid-cols-2 gap-8 border-t border-gray-200 pt-8">
-                <div>
-                  <div className="text-3xl font-serif font-bold text-red-700">15+</div>
-                  <div className="text-xs uppercase font-black tracking-widest text-slate-400 mt-1">Years Experience</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-serif font-bold text-red-700">50+</div>
-                  <div className="text-xs uppercase font-black tracking-widest text-slate-400 mt-1">Journalism Awards</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Team Cards Grid */}
-          <div className="mb-32">
-            <div className="flex items-end justify-between mb-16 border-b border-gray-900 pb-8">
-              <h2 className="text-5xl font-serif font-bold text-slate-900">The Editorial Board</h2>
-              <div className="h-0.5 w-24 bg-red-700"></div>
-            </div>
-            
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12">
-              {teamMembers.map((member, index) => (
-                <motion.div
-                  key={member.name}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  className="group"
-                >
-                  <div className="relative overflow-hidden mb-6">
-                    <div className="aspect-[4/5] relative">
-                      <Image
-                        src={member.image}
-                        alt={member.name}
-                        fill
-                        className="object-cover grayscale transition-all duration-700 group-hover:grayscale-0 group-hover:scale-105"
-                      />
-                      {/* Hover Bio Reveal */}
-                      <motion.div 
-                        className="absolute inset-0 bg-red-700/90 p-8 flex flex-col justify-end translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out"
-                      >
-                        <p className="text-white text-sm font-serif leading-relaxed line-clamp-6">
-                          {member.bio}
-                        </p>
-                      </motion.div>
-                    </div>
-                  </div>
-                  <h3 className="text-xl font-serif font-bold text-slate-900 mb-1">{member.name}</h3>
-                  <p className="text-red-700 text-xs font-black uppercase tracking-widest">{member.role}</p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-
-          {/* Call to Action */}
-          <motion.div 
-            whileHover={{ scale: 0.99 }}
-            className="bg-slate-950 p-16 text-center border-t-4 border-red-700"
+        {/* Bio panel — slides up from bottom, only covers lower third */}
+        <div
+          className="absolute bottom-0 left-0 right-0 px-5 pt-4 pb-5 transition-all duration-500 ease-out"
+          style={{
+            background: "rgba(10, 10, 10, 0.93)",
+            borderTop: "1.5px solid #C8102E",
+            transform: hovered ? "translateY(0)" : "translateY(100%)",
+            backdropFilter: "blur(6px)",
+          }}
+        >
+          <p
+            className="text-xs font-semibold uppercase tracking-widest mb-1"
+            style={{ color: "#C8102E", letterSpacing: "0.18em" }}
           >
-            <h2 className="text-4xl font-serif font-bold text-white mb-6">Forge The Future with Us.</h2>
-            <p className="text-slate-400 text-lg mb-10 max-w-xl mx-auto font-serif">
-              We seek bold voices who value journalistic integrity above all else.
-            </p>
-            <a
-              href="mailto:careers@presidencyodyssey.com"
-              className="inline-block px-12 py-4 bg-red-700 text-white text-xs font-black uppercase tracking-[0.2em] hover:bg-red-800 transition-colors"
+            {member.role}
+          </p>
+          <h3 className="font-serif text-base font-bold text-white mb-2 leading-snug">
+            {member.name}
+          </h3>
+          <p className="text-sm leading-relaxed" style={{ color: "#A09A94", fontWeight: 300 }}>
+            {member.bio}
+          </p>
+        </div>
+
+        {/* Red left rule accent on hover */}
+        <div
+          className="absolute top-0 left-0 bottom-0 transition-all duration-300"
+          style={{
+            width: "3px",
+            background: "#C8102E",
+            transform: hovered ? "scaleY(1)" : "scaleY(0)",
+            transformOrigin: "bottom",
+          }}
+        />
+      </div>
+    </motion.div>
+  );
+}
+
+export default function TeamPage() {
+  const heroRef = useRef(null);
+  const heroInView = useInView(heroRef, { once: true });
+
+  return (
+    <div className="min-h-screen" style={{  color: "#F0EBE3" }}>
+
+
+      {/* ── HERO ────────────────────────────────────────────────── */}
+      <section ref={heroRef} className="relative overflow-hidden" style={{ minHeight: "560px" }}>
+
+        {/* Full-bleed background image */}
+        <div className="absolute inset-0">
+          <Image
+            src="https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=1600&h=800&fit=crop"
+            alt="Newsroom"
+            fill
+            className="object-cover"
+            style={{ filter: "grayscale(60%) brightness(0.28)" }}
+            priority
+          />
+        </div>
+
+        {/* Overlay gradient */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(105deg, rgba(255,255,255,0.6) 40%, rgba(255,255,255,0.3) 100%)",
+          }}
+        />
+
+        {/* Red vertical accent bar */}
+        <div
+          className="absolute left-0 top-0 bottom-0"
+          style={{ width: "4px", background: "#C8102E" }}
+        />
+
+        {/* Content */}
+        <div className="relative z-10 px-16 py-24 max-w-4xl">
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            animate={heroInView ? { opacity: 1, x: 0 } : {}}
+            transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
+          >
+            <div className="flex items-center gap-4 mb-8">
+              <div style={{ width: "40px", height: "1.5px", background: "#C8102E" }} />
+              <span
+                className="text-xs font-bold uppercase tracking-widest"
+                style={{ color: "#C8102E", letterSpacing: "0.28em" }}
+              >
+                The Masthead
+              </span>
+            </div>
+
+            <h1
+              className="font-serif font-black text-white leading-none mb-8"
+              style={{ fontSize: "clamp(52px, 7vw, 88px)", letterSpacing: "-0.02em" }}
             >
-              Join The Registry
-            </a>
+              The Minds
+              <br />
+              <span className="italic" style={{ color: "#C8102E" }}>Behind</span>
+              <br />
+              the Odyssey
+            </h1>
+
+            <p
+              className="text-base leading-relaxed max-w-lg"
+              style={{
+                color: "#7A7470",
+                fontWeight: 300,
+                borderLeft: "2px solid #C8102E",
+                paddingLeft: "1rem",
+              }}
+            >
+              Dedicated to reporting facts and valuing the truth — through
+              rigorous journalistic standards and decades of earned experience
+              across Africa and the world.
+            </p>
           </motion.div>
         </div>
-      </div>
+
+      </section>
+
+      {/* ── LEADERSHIP FEATURE ─────────────────────────────────── */}
+      <section
+        className="grid"
+        style={{ gridTemplateColumns: "1fr 1fr", minHeight: "480px" }}
+      >
+        {/* Text side */}
+        <div
+          className="flex flex-col justify-center px-16 py-20"
+        >
+          <LeadershipText />
+        </div>
+
+        {/* Image side */}
+        <div className="relative overflow-hidden" style={{ minHeight: "480px" }}>
+          <Image
+            src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&h=700&fit=crop"
+            alt="Executive leadership"
+            fill
+            className="object-cover transition-all duration-1000"
+            style={{ filter: "grayscale(25%)" }}
+          />
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background:
+                "linear-gradient(to right, rgba(17,17,17,0.5) 0%, transparent 50%)",
+            }}
+          />
+          {/* Caption */}
+          <div
+            className="absolute bottom-8 right-8"
+            style={{
+              borderLeft: "2px solid #C8102E",
+              paddingLeft: "12px",
+            }}
+          >
+            <p className="text-white font-serif font-bold text-base">Executive Leadership</p>
+            <p className="text-xs uppercase tracking-widest" style={{ color: "#C8102E", letterSpacing: "0.16em" }}>
+              Committed to Integrity
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── TEAM GRID ───────────────────────────────────────────── */}
+      <section className="px-12 py-20">
+        {/* Section header */}
+        <div
+          className="flex items-baseline justify-between mb-14 pb-6"
+          style={{ borderBottom: "0.5px solid #2A2420" }}
+        >
+          <div>
+            <p
+              className="text-xs font-bold uppercase tracking-widest mb-3"
+              style={{ color: "#C8102E", letterSpacing: "0.26em" }}
+            >
+              Editorial Board
+            </p>
+            <h2
+              className="font-serif font-bold text-black"
+              style={{ fontSize: "36px", letterSpacing: "-0.01em" }}
+            >
+              Meet the Team
+            </h2>
+          </div>
+          <p
+            className="text-xs font-semibold uppercase tracking-widest hidden md:block"
+            style={{ color: "#3A3430", letterSpacing: "0.16em" }}
+          >
+            Hover any portrait
+          </p>
+        </div>
+
+        {/* 4-column portrait grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {teamMembers.map((member, index) => (
+            <MemberCard key={member.name} member={member} index={index} />
+          ))}
+        </div>
+      </section>
+
     </div>
+  );
+}
+
+/* ── Sub-components ───────────────────────────────────────── */
+
+function LeadershipText() {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-80px" });
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, x: -24 }}
+      animate={inView ? { opacity: 1, x: 0 } : {}}
+      transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
+    >
+      <div className="flex items-center gap-4 mb-8">
+        <div style={{ width: "32px", height: "1.5px", background: "#C8102E" }} />
+        <span
+          className="text-xs font-bold uppercase tracking-widest"
+          style={{ color: "#C8102E", letterSpacing: "0.24em" }}
+        >
+          Our Leadership
+        </span>
+      </div>
+
+      <h2
+        className="font-serif font-bold text-black leading-tight mb-6"
+        style={{ fontSize: "clamp(28px, 3vw, 40px)" }}
+      >
+        A tradition of
+        <br />
+        unbiased inquiry.
+      </h2>
+
+      <p
+        className="text-sm leading-relaxed mb-4"
+        style={{ color: "#6B6560", fontWeight: 300, maxWidth: "400px" }}
+      >
+        Our leadership team brings decades of combined experience from some of
+        the world's most respected news organisations — dedicated to delivering
+        accurate, unbiased journalism that informs and empowers.
+      </p>
+
+      <p
+        className="text-sm leading-relaxed"
+        style={{ color: "#6B6560", fontWeight: 300, maxWidth: "400px" }}
+      >
+        With expertise spanning politics, economics, sports, and international
+        relations, every story meets the highest standards of journalistic
+        integrity and depth.
+      </p>
+    </motion.div>
   );
 }

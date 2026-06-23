@@ -14,10 +14,11 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const search = searchParams.get('search');
     const date = searchParams.get('date');
+    const publishedPage = parseInt(searchParams.get('publishedPage') || '1');
+    const scheduledPage = parseInt(searchParams.get('scheduledPage') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
 
-    const where: any = {
-      authorId: session.user?.id,
-    };
+    const where: any = {};
 
     if (search) {
       where.title = {
@@ -33,7 +34,10 @@ export async function GET(request: NextRequest) {
       };
     }
 
-    const [published, scheduled] = await Promise.all([
+    const publishedSkip = (publishedPage - 1) * limit;
+    const scheduledSkip = (scheduledPage - 1) * limit;
+
+    const [published, scheduled, publishedTotal, scheduledTotal] = await Promise.all([
       prisma.post.findMany({
         where: {
           ...where,
@@ -44,7 +48,9 @@ export async function GET(request: NextRequest) {
           author: { select: { name: true, email: true } },
           category: { select: { name: true } }
         },
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
+        skip: publishedSkip,
+        take: limit
       }),
       prisma.post.findMany({
         where: {
@@ -56,11 +62,44 @@ export async function GET(request: NextRequest) {
           author: { select: { name: true, email: true } },
           category: { select: { name: true } }
         },
-        orderBy: { publishedAt: 'asc' }
+        orderBy: { publishedAt: 'asc' },
+        skip: scheduledSkip,
+        take: limit
+      }),
+      prisma.post.count({
+        where: {
+          ...where,
+          status: 'PUBLISHED',
+          publishedAt: { lte: new Date() }
+        }
+      }),
+      prisma.post.count({
+        where: {
+          ...where,
+          status: 'PUBLISHED',
+          publishedAt: { gt: new Date() }
+        }
       })
     ]);
 
-    return NextResponse.json({ published, scheduled });
+    return NextResponse.json({ 
+      published, 
+      scheduled,
+      pagination: {
+        published: {
+          page: publishedPage,
+          limit,
+          total: publishedTotal,
+          totalPages: Math.ceil(publishedTotal / limit)
+        },
+        scheduled: {
+          page: scheduledPage,
+          limit,
+          total: scheduledTotal,
+          totalPages: Math.ceil(scheduledTotal / limit)
+        }
+      }
+    });
 
   } catch (error) {
     console.error('Fetch error:', error);

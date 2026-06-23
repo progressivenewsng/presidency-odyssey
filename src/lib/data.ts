@@ -130,7 +130,7 @@ export async function getEditorsPicks() {
       images: true,
     },
     orderBy: { createdAt: 'desc' },
-    take: 3,
+    take: 10,
   });
 
   return posts.map(post => ({
@@ -163,7 +163,7 @@ export async function getFeaturedStories() {
       images: true,
     },
     orderBy: { createdAt: 'desc' },
-    take: 4,
+    take: 10,
   });
 
   return posts.map(post => ({
@@ -196,7 +196,7 @@ export async function getTrendingStories() {
       images: true,
     },
     orderBy: { createdAt: 'desc' },
-    take: 2,
+    take: 10,
   });
 
   return posts.map(post => ({
@@ -229,7 +229,7 @@ export async function getPopularStories() {
       images: true,
     },
     orderBy: { createdAt: 'desc' },
-    take: 4,
+    take: 10,
   });
 
   return posts.map(post => ({

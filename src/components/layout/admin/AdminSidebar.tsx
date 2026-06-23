@@ -30,6 +30,7 @@ export default function AdminSidebar() {
         <ul className="space-y-2">
           <li><a href="/admin/dashboard" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Dashboard</a></li>
           <li><a href="/admin/articles" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Articles</a></li>
+          <li><a href="/admin/batch-upload" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Batch Upload</a></li>
           <li><a href="/admin/media" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Media Library</a></li>
           <li><a href="/admin/settings" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Settings</a></li>
           <li><a href="/admin/categories" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Categories</a></li>

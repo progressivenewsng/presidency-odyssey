@@ -26,17 +26,29 @@ export default function ArticlesPage() {
   const [selectedPublished, setSelectedPublished] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'published' | 'scheduled'>('published');
+  const [publishedPage, setPublishedPage] = useState(1);
+  const [scheduledPage, setScheduledPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    published: { page: 1, limit: 10, total: 0, totalPages: 0 },
+    scheduled: { page: 1, limit: 10, total: 0, totalPages: 0 }
+  });
 
-  const fetchArticles = async () => {
+  const fetchArticles = async (publishedPageParam = 1, scheduledPageParam = 1) => {
     try {
-      const url = searchQuery || dateFilter
-        ? `/api/admin/articles?search=${encodeURIComponent(searchQuery)}&date=${dateFilter}`
-        : '/api/admin/articles';
+      const params = new URLSearchParams();
+      if (searchQuery) params.append('search', searchQuery);
+      if (dateFilter) params.append('date', dateFilter);
+      params.append('publishedPage', publishedPageParam.toString());
+      params.append('scheduledPage', scheduledPageParam.toString());
+      params.append('limit', '10');
+      
+      const url = `/api/admin/articles?${params.toString()}`;
       const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
         setPublishedArticles(data.published || []);
         setScheduledArticles(data.scheduled || []);
+        setPagination(data.pagination);
       }
     } catch (error) {
       console.error('Failed to fetch articles:', error);
@@ -46,12 +58,14 @@ export default function ArticlesPage() {
   };
 
   useEffect(() => {
-    fetchArticles();
+    fetchArticles(1, 1);
   }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      fetchArticles();
+      setPublishedPage(1);
+      setScheduledPage(1);
+      fetchArticles(1, 1);
     }, 300);
     return () => clearTimeout(timer);
   }, [searchQuery, dateFilter]);
@@ -70,7 +84,7 @@ export default function ArticlesPage() {
         body: JSON.stringify({ ids: selectedPublished }),
       });
       setSelectedPublished([]);
-      fetchArticles();
+      fetchArticles(publishedPage, scheduledPage);
       alert('Articles archived successfully');
     } catch (error) {
       alert('Failed to archive articles');
@@ -81,7 +95,7 @@ export default function ArticlesPage() {
     if (!confirm('Delete this article?')) return;
     try {
       await fetch(`/api/admin/articles/${id}`, { method: 'DELETE' });
-      fetchArticles();
+      fetchArticles(publishedPage, scheduledPage);
     } catch (error) {
       alert('Failed to delete article');
     }
@@ -91,7 +105,7 @@ export default function ArticlesPage() {
     if (!confirm('Archive this article?')) return;
     try {
       await fetch(`/api/admin/articles/${id}/archive`, { method: 'POST' });
-      fetchArticles();
+      fetchArticles(publishedPage, scheduledPage);
     } catch (error) {
       alert('Failed to archive article');
     }
@@ -154,7 +168,7 @@ export default function ArticlesPage() {
                   : 'bg-white text-gray-700 hover:bg-gray-100'
               }`}
             >
-              Published ({publishedArticles.length})
+              Published ({pagination.published.total})
             </button>
             <button
               onClick={() => setActiveTab('scheduled')}
@@ -164,7 +178,7 @@ export default function ArticlesPage() {
                   : 'bg-white text-gray-700 hover:bg-gray-100'
               }`}
             >
-              Scheduled ({scheduledArticles.length})
+              Scheduled ({pagination.scheduled.total})
             </button>
           </div>
 
@@ -185,106 +199,157 @@ export default function ArticlesPage() {
           {loading ? (
             <div className="text-center py-12">Loading...</div>
           ) : (
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    {activeTab === 'published' && (
-                      <th className="px-6 py-3 text-left">
-                        <input
-                          type="checkbox"
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedPublished(displayedArticles.map(a => a.id));
-                            } else {
-                              setSelectedPublished([]);
-                            }
-                          }}
-                        />
-                      </th>
-                    )}
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Headline
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Author
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Category
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Date
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {displayedArticles.map((article) => (
-                    <tr key={article.id}>
+            <>
+              <div className="bg-white rounded-lg shadow overflow-hidden">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
                       {activeTab === 'published' && (
-                        <td className="px-6 py-4">
+                        <th className="px-6 py-3 text-left">
                           <input
                             type="checkbox"
-                            checked={selectedPublished.includes(article.id)}
                             onChange={(e) => {
                               if (e.target.checked) {
-                                setSelectedPublished([...selectedPublished, article.id]);
+                                setSelectedPublished(displayedArticles.map(a => a.id));
                               } else {
-                                setSelectedPublished(selectedPublished.filter(id => id !== article.id));
+                                setSelectedPublished([]);
                               }
                             }}
                           />
-                        </td>
+                        </th>
                       )}
-                      <td className="px-6 py-4">
-                        <div className="text-sm font-medium text-gray-900">{article.title}</div>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">{article.author.name}</td>
-                      <td className="px-6 py-4 text-sm text-gray-500">{article.category?.name || 'Uncategorized'}</td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
-                        {activeTab === 'published' 
-                          ? format(new Date(article.createdAt), 'MMM d, yyyy')
-                          : format(new Date(article.publishedAt!), 'MMM d, yyyy HH:mm')
-                        }
-                      </td>
-                      <td className="px-6 py-4 text-sm space-x-2">
-                        <a
-                          href={`/${article.slug}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-indigo-600 hover:text-indigo-700"
-                        >
-                          View
-                        </a>
-                        <a
-                          href={`/admin/articles/${article.id}/edit`}
-                          className="text-green-600 hover:text-green-700"
-                        >
-                          Edit
-                        </a>
-                        {activeTab === 'published' ? (
-                          <button
-                            onClick={() => handleArchive(article.id)}
-                            className="text-orange-600 hover:text-orange-700"
-                          >
-                            Archive
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => handleDelete(article.id)}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            Delete
-                          </button>
-                        )}
-                      </td>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Headline
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Author
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Category
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Date
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Actions
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {displayedArticles.map((article) => (
+                      <tr key={article.id}>
+                        {activeTab === 'published' && (
+                          <td className="px-6 py-4">
+                            <input
+                              type="checkbox"
+                              checked={selectedPublished.includes(article.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedPublished([...selectedPublished, article.id]);
+                                } else {
+                                  setSelectedPublished(selectedPublished.filter(id => id !== article.id));
+                                }
+                              }}
+                            />
+                          </td>
+                        )}
+                        <td className="px-6 py-4">
+                          <div className="text-sm font-medium text-gray-900">{article.title}</div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500">{article.author.name}</td>
+                        <td className="px-6 py-4 text-sm text-gray-500">{article.category?.name || 'Uncategorized'}</td>
+                        <td className="px-6 py-4 text-sm text-gray-500">
+                          {activeTab === 'published' 
+                            ? format(new Date(article.createdAt), 'MMM d, yyyy')
+                            : format(new Date(article.publishedAt!), 'MMM d, yyyy HH:mm')
+                          }
+                        </td>
+                        <td className="px-6 py-4 text-sm space-x-2">
+                          <a
+                            href={`/${article.slug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-indigo-600 hover:text-indigo-700"
+                          >
+                            View
+                          </a>
+                          <a
+                            href={`/admin/articles/${article.id}/edit`}
+                            className="text-green-600 hover:text-green-700"
+                          >
+                            Edit
+                          </a>
+                          {activeTab === 'published' ? (
+                            <button
+                              onClick={() => handleArchive(article.id)}
+                              className="text-orange-600 hover:text-orange-700"
+                            >
+                              Archive
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleDelete(article.id)}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination Controls */}
+              {(() => {
+                const currentPagination = activeTab === 'published' ? pagination.published : pagination.scheduled;
+                const currentPage = activeTab === 'published' ? publishedPage : scheduledPage;
+                if (currentPagination.totalPages <= 1) return null;
+                
+                return (
+                  <div className="flex items-center justify-center gap-2 mt-6 bg-white rounded-lg shadow p-4">
+                    <button
+                      onClick={() => {
+                        if (activeTab === 'published') {
+                          const newPage = Math.max(1, publishedPage - 1);
+                          setPublishedPage(newPage);
+                          fetchArticles(newPage, scheduledPage);
+                        } else {
+                          const newPage = Math.max(1, scheduledPage - 1);
+                          setScheduledPage(newPage);
+                          fetchArticles(publishedPage, newPage);
+                        }
+                      }}
+                      disabled={currentPage === 1}
+                      className="px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Previous
+                    </button>
+                    <span className="text-sm text-gray-700">
+                      Page {currentPage} of {currentPagination.totalPages}
+                    </span>
+                    <button
+                      onClick={() => {
+                        if (activeTab === 'published') {
+                          const newPage = Math.min(currentPagination.totalPages, publishedPage + 1);
+                          setPublishedPage(newPage);
+                          fetchArticles(newPage, scheduledPage);
+                        } else {
+                          const newPage = Math.min(currentPagination.totalPages, scheduledPage + 1);
+                          setScheduledPage(newPage);
+                          fetchArticles(publishedPage, newPage);
+                        }
+                      }}
+                      disabled={currentPage === currentPagination.totalPages}
+                      className="px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Next
+                    </button>
+                  </div>
+                );
+              })()}
+            </>
           )}
 
           {!loading && displayedArticles.length === 0 && (

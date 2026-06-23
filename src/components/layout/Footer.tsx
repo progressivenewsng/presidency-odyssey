@@ -1,9 +1,32 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import logo from '../../assets/logoNBG.png'
+import logo from '../../assets/logoNBG.png';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const [categories, setCategories] = useState<{name: string, slug: string}[]>([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch('/api/categories');
+        const data = await response.json();
+        setCategories(data.categories.map((cat: any) => ({ name: cat.name, slug: cat.slug })));
+      } catch (error) {
+        console.error('Failed to fetch categories:', error);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  const navItems = [
+    { name: "Home", href: "/" },
+    ...categories.map(cat => ({ name: cat.name, href: `/category/${cat.slug}` })),
+    { name: "Team", href: "/team" },
+  ];
   
   return (
     <footer className="bg-slate-900 text-white mt-12 py-12">
@@ -17,10 +40,16 @@ export default function Footer() {
         <div>
           <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
           <ul className="space-y-2 text-sm text-gray-400">
-            <li><Link href="/" className="hover:text-red-500 transition-all duration-300 hover:translate-x-1 inline-block">Home</Link></li>
-            <li><Link href="/politics" className="hover:text-red-500 transition-all duration-300 hover:translate-x-1 inline-block">Politics</Link></li>
-            <li><Link href="/economy" className="hover:text-red-500 transition-all duration-300 hover:translate-x-1 inline-block">Economy</Link></li>
-            <li><Link href="/sports" className="hover:text-red-500 transition-all duration-300 hover:translate-x-1 inline-block">Sports</Link></li>
+            {navItems.map((item) => (
+              <li key={item.name}>
+                <Link 
+                  href={item.href} 
+                  className="hover:text-red-500 transition-all duration-300 hover:translate-x-1 inline-block"
+                >
+                  {item.name}
+                </Link>
+              </li>
+            ))}
           </ul>
         </div>
         <div>

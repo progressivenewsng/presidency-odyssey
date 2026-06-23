@@ -69,12 +69,12 @@ export default async function DynamicPage({
       <article className="container mx-auto px-4 py-16 max-w-4xl">
         {/* Hero Image */}
         {article.imageUrl && (
-          <div className="relative w-full h-[400px] md:h-[500px] mb-10 rounded-lg overflow-hidden">
+          <div className="relative w-full h-100 md:h-125 mb-10 rounded-lg overflow-hidden">
             <Image
               src={article.imageUrl}
               alt={article.title}
               fill
-              className="object-cover"
+              className="object-contain"
               priority
             />
           </div>

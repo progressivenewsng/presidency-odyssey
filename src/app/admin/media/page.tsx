@@ -18,16 +18,19 @@ export default function MediaLibraryPage() {
   const [uploading, setUploading] = useState(false);
   const [images, setImages] = useState<MediaImage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({ page: 1, limit: 8, total: 0, totalPages: 0 });
 
-  const fetchImages = async (search = "") => {
+  const fetchImages = async (search = "", currentPage = 1) => {
     try {
       const url = search 
-        ? `/api/admin/media?search=${encodeURIComponent(search)}`
-        : '/api/admin/media';
+        ? `/api/admin/media?search=${encodeURIComponent(search)}&page=${currentPage}&limit=8`
+        : `/api/admin/media?page=${currentPage}&limit=8`;
       const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
         setImages(data.images);
+        setPagination(data.pagination);
       } else {
         console.error('Failed to fetch images:', response.status);
       }
@@ -39,12 +42,13 @@ export default function MediaLibraryPage() {
   };
 
   useEffect(() => {
-    fetchImages();
+    fetchImages("", 1);
   }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      fetchImages(searchQuery);
+      setPage(1);
+      fetchImages(searchQuery, 1);
     }, 300);
     return () => clearTimeout(timer);
   }, [searchQuery]);
@@ -79,17 +83,16 @@ export default function MediaLibraryPage() {
         formData.append('names', imageNames[index]);
       });
 
-      const response = await fetch('/api/admin/media/upload', {
+      const response = await fetch('/api/admin/media', {
         method: 'POST',
         body: formData,
       });
 
       if (response.ok) {
-        const result = await response.json();
-        setImages([...result.images, ...images]);
         setSelectedFiles([]);
         setImageNames([]);
         alert('Images uploaded successfully!');
+        fetchImages(searchQuery, page);
       } else {
         const error = await response.json();
         alert(`Failed to upload images: ${error.error}`);
@@ -113,6 +116,7 @@ export default function MediaLibraryPage() {
       if (response.ok) {
         setImages(images.filter(img => img.publicId !== publicId));
         alert('Image deleted successfully!');
+        fetchImages(searchQuery, page);
       } else {
         const error = await response.json();
         alert(`Failed to delete image: ${error.error}`);
@@ -208,33 +212,66 @@ export default function MediaLibraryPage() {
               <p className="text-gray-500">Loading images...</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {images.map((image) => (
-                <div key={image.id} className="bg-white rounded-lg shadow overflow-hidden">
-                  <div className="aspect-square bg-gray-100">
-                    <img
-                      src={image.url}
-                      alt={image.filename}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="p-4">
-                    <p className="text-sm font-medium text-gray-900 truncate">{image.filename}</p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {new Date(image.createdAt).toLocaleDateString()}
-                    </p>
-                    <div className="flex justify-between mt-2">
-                      <button
-                        onClick={() => handleDelete(image.publicId)}
-                        className="text-red-600 hover:text-red-700 text-sm"
-                      >
-                        Delete
-                      </button>
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {images.map((image) => (
+                  <div key={image.id} className="bg-white rounded-lg shadow overflow-hidden">
+                    <div className="aspect-square bg-gray-100">
+                      <img
+                        src={image.url}
+                        alt={image.filename}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="p-4">
+                      <p className="text-sm font-medium text-gray-900 truncate">{image.filename}</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {new Date(image.createdAt).toLocaleDateString()}
+                      </p>
+                      <div className="flex justify-between mt-2">
+                        <button
+                          onClick={() => handleDelete(image.publicId)}
+                          className="text-red-600 hover:text-red-700 text-sm"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   </div>
+                ))}
+              </div>
+
+              {/* Pagination Controls */}
+              {pagination.totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-6 bg-white rounded-lg shadow p-4">
+                  <button
+                    onClick={() => {
+                      const newPage = Math.max(1, page - 1);
+                      setPage(newPage);
+                      fetchImages(searchQuery, newPage);
+                    }}
+                    disabled={page === 1}
+                    className="px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Previous
+                  </button>
+                  <span className="text-sm text-gray-700">
+                    Page {page} of {pagination.totalPages}
+                  </span>
+                  <button
+                    onClick={() => {
+                      const newPage = Math.min(pagination.totalPages, page + 1);
+                      setPage(newPage);
+                      fetchImages(searchQuery, newPage);
+                    }}
+                    disabled={page === pagination.totalPages}
+                    className="px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
                 </div>
-              ))}
-            </div>
+              )}
+            </>
           )}
 
           {!loading && images.length === 0 && (

@@ -5,9 +5,10 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession(authOptions);
     
     if (!session) {
@@ -15,7 +16,7 @@ export async function GET(
     }
 
     const count = await prisma.post.count({
-      where: { categoryId: params.id }
+      where: { categoryId: id }
     });
 
     return NextResponse.json({ count });
