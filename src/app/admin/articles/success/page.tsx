@@ -1,9 +1,9 @@
 "use client";
 
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 
-export default function ArticleSuccessPage() {
+function ArticleSuccessContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [article, setArticle] = useState<any>(null);
@@ -128,5 +128,20 @@ export default function ArticleSuccessPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ArticleSuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-700 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    }>
+      <ArticleSuccessContent />
+    </Suspense>
   );
 }
