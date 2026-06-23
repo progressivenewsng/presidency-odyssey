@@ -30,7 +30,7 @@ function ArticleSuccessContent() {
     );
   }
 
-  const articleLink = `http://localhost:3000/${article.slug}`;
+  const articleLink = `https://presidency-odyssey-k51t.vercel.app/${article.slug}`;
 
   return (
     <div className="min-h-screen bg-linear-to-br from-green-50 via-white to-blue-50 flex items-center justify-center px-4">
