@@ -66,7 +66,7 @@ export default async function Home() {
               <Link
                 href={`/${item.slug}`}
                 key={item.id}
-                className="flex gap-4 group cursor-pointer border border-gray-100 p-4 bg-white rounded-lg shadow-xs hover:shadow-md hover:border-red-100 transition-all duration-300 w-full"
+                className="flex gap-4 group cursor-pointer border border-white p-4 bg-white rounded-lg hover:shadow-md hover:border-red-100 transition-all duration-300 w-full"
               >
                 <div className="w-20 h-20 shrink-0 bg-slate-200 rounded-md overflow-hidden relative">
                   {item.imageUrl ? (
@@ -186,7 +186,7 @@ export default async function Home() {
               <Link
                 href={`/${item.slug}`}
                 key={item.id}
-                className="flex gap-4 group cursor-pointer relative p-4 border border-gray-100 bg-white rounded-lg shadow-xs hover:shadow-md hover:border-red-100 transition-all duration-300 w-full"
+                className="flex gap-4 group cursor-pointer relative p-4 border border-white bg-white rounded-lg hover:shadow-md hover:border-red-100 transition-all duration-300 w-full"
               >
                 <span className="text-4xl font-serif font-black text-gray-100 absolute left-2 top-0 z-0">
                   {index + 1}

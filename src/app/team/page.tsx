@@ -366,7 +366,7 @@ function LeadershipText() {
         className="text-sm leading-relaxed"
         style={{ color: "#6B6560", fontWeight: 300, maxWidth: "400px" }}
       >
-        With expertise spanning politics, economics, sports, and international
+        With expertise spanning politics, economics, sports, and national
         relations, every story meets the highest standards of journalistic
         integrity and depth.
       </p>

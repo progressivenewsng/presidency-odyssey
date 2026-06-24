@@ -4,9 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import logo from '../../assets/logo.jpg'
+import logo from '../../assets/logo2.jpg'
 import logoNBG from '../../assets/logoNBG.png'
-import { getAllNews } from "@/lib/data";
  
 export default function Header() {
   const pathname = usePathname();
@@ -60,12 +59,15 @@ export default function Header() {
   useEffect(() => {
     const fetchAndFilter = async () => {
       if (searchQuery.trim().length > 1) {
-        const allNews = await getAllNews();
-        const filtered = allNews.filter(item => 
-          item.title.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-        setSearchResults(filtered);
-        setIsDropdownOpen(true);
+        try {
+          const response = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`);
+          const data = await response.json();
+          setSearchResults(data.results || []);
+          setIsDropdownOpen(true);
+        } catch (error) {
+          console.error('Search error:', error);
+          setSearchResults([]);
+        }
       } else {
         setSearchResults([]);
         setIsDropdownOpen(false);
@@ -101,8 +103,8 @@ export default function Header() {
             <Image 
               src={logo} 
               alt="Logo" 
-              width={100} 
-              height={100} 
+              width={50} 
+              height={50} 
               className="object-contain"
             />
             <span>{today}</span>
