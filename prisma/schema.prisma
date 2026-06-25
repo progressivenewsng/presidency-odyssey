@@ -59,6 +59,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   media         Media[]
+  batchJobs     BatchJob[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
@@ -157,6 +158,30 @@ model Media {
   createdAt   DateTime @default(now())
 }
 
+// BatchJob model for tracking batch upload jobs
+model BatchJob {
+  id                String   @id @default(uuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fileName          String
+  totalRows         Int
+  processedRows     Int      @default(0)
+  successfulRows    Int      @default(0)
+  failedRows        Int      @default(0)
+  status            JobStatus @default(PENDING)
+  error             String?
+  progress          Float    @default(0) // 0-100 percentage
+  currentRow        Int?     // Current row being processed
+  currentMessage    String?  // Current status message
+  uploadedArticles  Json?    // Array of uploaded article info
+  ignoredEntries    Json?    // Array of ignored entry info
+  reportUrl         String?  // URL to download the report
+  startedAt         DateTime @default(now())
+  completedAt       DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
 // Enums
 enum Role {
   ADMIN
@@ -177,4 +202,11 @@ enum PostFlag {
   TRENDING
   POPULAR
   BREAKING_NEWS
+}
+
+enum JobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
 }

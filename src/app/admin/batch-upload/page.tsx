@@ -1,21 +1,21 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import AdminSidebar from "@/components/layout/admin/AdminSidebar";
 
 export default function BatchUploadPage() {
+  const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
       setError(null);
-      setSuccess(false);
     }
   };
 
@@ -41,7 +41,6 @@ export default function BatchUploadPage() {
         
         xhr.upload.addEventListener('progress', (event) => {
           if (event.lengthComputable) {
-            // Cap at 99% until upload is complete
             let progress = Math.round((event.loaded / event.total) * 100);
             if (progress === 100 && event.loaded < event.total) {
               progress = 99;
@@ -53,19 +52,19 @@ export default function BatchUploadPage() {
         xhr.addEventListener('load', () => {
           setUploadProgress(100);
           if (xhr.status === 200) {
-            // Handle DOCX download
-            const blob = new Blob([xhr.response], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'batch-upload-report.docx';
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-
-            setSuccess(true);
-            resolve();
+            try {
+              const data = JSON.parse(xhr.responseText);
+              if (data.redirectUrl) {
+                router.push(data.redirectUrl);
+                resolve();
+              } else {
+                setError('Invalid response from server');
+                reject();
+              }
+            } catch {
+              setError('Invalid response from server');
+              reject();
+            }
           } else {
             try {
               const data = JSON.parse(xhr.responseText);
@@ -82,7 +81,7 @@ export default function BatchUploadPage() {
           reject();
         });
 
-        xhr.responseType = 'blob';
+        xhr.responseType = 'json';
         xhr.open('POST', '/api/admin/batch-upload');
         xhr.send(formData);
       });
@@ -157,12 +156,6 @@ export default function BatchUploadPage() {
               {error && (
                 <div className="mb-4 p-3 bg-red-50 rounded-lg">
                   <p className="text-sm text-red-700">{error}</p>
-                </div>
-              )}
-
-              {success && (
-                <div className="mb-4 p-3 bg-green-50 rounded-lg">
-                  <p className="text-sm text-green-700">Upload complete! DOCX report has been downloaded.</p>
                 </div>
               )}
 
