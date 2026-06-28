@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import AdminSidebar from "@/components/layout/admin/AdminSidebar";
 
 export default function NewArticlePage() {
   const router = useRouter();
@@ -185,35 +186,16 @@ const handleSubmit = async (e: React.FormEvent) => {
     <div className="min-h-screen bg-gray-50">
       <div className="flex">
         {/* Sidebar */}
-        <aside className="w-64 bg-white shadow-lg min-h-screen">
-          <div className="p-6 border-b">
-            <h2 className="text-xl font-bold text-gray-800">Admin Panel</h2>
-          </div>
-          <nav className="p-4">
-            <ul className="space-y-2">
-              <li><a href="/admin/dashboard" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Dashboard</a></li>
-              <li><a href="/admin/articles" className="block px-4 py-2 text-gray-700 bg-gray-100 rounded-lg">Articles</a></li>
-              <li><a href="/admin/media" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Media Library</a></li>
-              <li><a href="/admin/settings" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Settings</a></li>
-              <li><a href="/admin/categories" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Categories</a></li>
-              <li><a href="/admin/archive" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Archive</a></li>
-            </ul>
-          </nav>
-          <div className="absolute bottom-0 left-0 w-64 p-4 border-t">
-            <form action="/api/auth/signout" method="POST">
-              <button type="submit" className="w-full px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg">Sign Out</button>
-            </form>
-          </div>
-        </aside>
+        <AdminSidebar />
 
         {/* Main Content */}
-        <main className="flex-1 p-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Create New Article</h1>
+        <main className="flex-1 p-4 sm:p-6 md:p-8 ">
+          <div className="mb-6 sm:mb-8">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Create New Article</h1>
             <p className="text-gray-600 mt-2">Fill in the details to publish a new article</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             {/* Title */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Headline *</label>
@@ -267,7 +249,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Images *</label>
               <div className="space-y-4">
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <button
                     type="button"
                     onClick={() => setShowMediaLibrary(!showMediaLibrary)}
@@ -298,10 +280,10 @@ const handleSubmit = async (e: React.FormEvent) => {
 
                 {/* Media Library Modal */}
                 {showMediaLibrary && (
-                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
-                      <div className="p-6 border-b flex justify-between items-center">
-                        <h2 className="text-xl font-bold">Select from Media Library</h2>
+                      <div className="p-4 sm:p-6 border-b flex justify-between items-center">
+                        <h2 className="text-lg sm:text-xl font-bold">Select from Media Library</h2>
                         <button
                           type="button"
                           onClick={() => setShowMediaLibrary(false)}
@@ -310,7 +292,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                           ✕
                         </button>
                       </div>
-                      <div className="p-6">
+                      <div className="p-4 sm:p-6">
                         <input
                           type="text"
                           placeholder="Search images by name..."
@@ -318,7 +300,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                           onChange={(e) => setSearchQuery(e.target.value)}
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4"
                         />
-                        <div className="grid grid-cols-3 gap-4 max-h-100 overflow-y-auto">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-h-60 sm:max-h-100 overflow-y-auto">
                           {mediaImages.map((image) => (
                             <div
                               key={image.id}
@@ -332,7 +314,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                               <img
                                 src={image.url}
                                 alt={image.filename}
-                                className="w-full h-32 object-cover"
+                                className="w-full h-24 sm:h-32 object-cover"
                               />
                               <div className="p-2 bg-gray-50">
                                 <p className="text-xs text-gray-700 truncate">{image.filename}</p>
@@ -340,7 +322,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                             </div>
                           ))}
                           {mediaImages.length === 0 && (
-                            <p className="col-span-3 text-center text-gray-500">No images found</p>
+                            <p className="col-span-2 sm:col-span-3 text-center text-gray-500">No images found</p>
                           )}
                         </div>
                       </div>
@@ -356,12 +338,12 @@ const handleSubmit = async (e: React.FormEvent) => {
                         <img
                           src={img.url}
                           alt={img.filename}
-                          className="w-24 h-24 object-cover rounded border-2 border-indigo-600"
+                          className="w-16 h-16 sm:w-24 sm:h-24 object-cover rounded border-2 border-indigo-600"
                         />
                         <button
                           type="button"
                           onClick={() => removeSelectedImage(img.id)}
-                          className="absolute -top-2 -right-2 w-6 h-6 bg-red-600 text-white rounded-full text-xs"
+                          className="absolute -top-2 -right-2 w-5 h-5 sm:w-6 sm:h-6 bg-red-600 text-white rounded-full text-[10px] sm:text-xs"
                         >
                           ✕
                         </button>
@@ -416,7 +398,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                   type="text"
                   placeholder="Add tag and press Enter"
                   onKeyDown={addTag}
-                  className="px-3 py-1 border border-gray-300 rounded-full text-sm"
+                  className="px-3 py-1 border border-gray-300 rounded-full text-sm flex-1 min-w-[120px]"
                 />
               </div>
             </div>
@@ -436,7 +418,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             </div>
 
             {/* Submit */}
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-4">
               <button
                 type="submit"
                 disabled={loading}

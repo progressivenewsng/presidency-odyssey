@@ -79,25 +79,17 @@ export default function ArchivePage() {
     <div className="min-h-screen bg-gray-50">
       <div className="flex">
         {/* Sidebar */}
-        <aside className="w-64 bg-white shadow-lg min-h-screen">
-          
-          <AdminSidebar />
-          <div className="absolute bottom-0 left-0 w-64 p-4 border-t">
-            <form action="/api/auth/signout" method="POST">
-              <button type="submit" className="w-full px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg">Sign Out</button>
-            </form>
-          </div>
-        </aside>
+        <AdminSidebar />
 
         {/* Main Content */}
-        <main className="flex-1 p-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Archive</h1>
+        <main className="flex-1 p-4 sm:p-6 md:p-8 ">
+          <div className="mb-6 sm:mb-8">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Archive</h1>
             <p className="text-gray-600 mt-2">View, restore, or permanently delete archived articles</p>
           </div>
 
           {selected.length > 0 && (
-            <div className="mb-4 p-4 bg-red-50 rounded-lg flex justify-between items-center">
+            <div className="mb-4 p-4 bg-red-50 rounded-lg flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
               <span>{selected.length} article(s) selected</span>
               <button
                 onClick={handleMassDelete}
@@ -112,70 +104,72 @@ export default function ArchivePage() {
             <div className="text-center py-12">Loading...</div>
           ) : (
             <div className="bg-white rounded-lg shadow overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left">
-                      <input
-                        type="checkbox"
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelected(articles.map(a => a.id));
-                          } else {
-                            setSelected([]);
-                          }
-                        }}
-                      />
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Headline</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Author</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {articles.map((article) => (
-                    <tr key={article.id}>
-                      <td className="px-6 py-4">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[600px]">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 sm:px-6 py-3 text-left">
                         <input
                           type="checkbox"
-                          checked={selected.includes(article.id)}
                           onChange={(e) => {
                             if (e.target.checked) {
-                              setSelected([...selected, article.id]);
+                              setSelected(articles.map(a => a.id));
                             } else {
-                              setSelected(selected.filter(id => id !== article.id));
+                              setSelected([]);
                             }
                           }}
                         />
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm font-medium text-gray-900">{article.title}</div>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">{article.author.name}</td>
-                      <td className="px-6 py-4 text-sm text-gray-500">{article.category?.name || 'Uncategorized'}</td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
-                        {format(new Date(article.createdAt), 'MMM d, yyyy')}
-                      </td>
-                      <td className="px-6 py-4 text-sm space-x-2">
-                        <button
-                          onClick={() => handleRestore(article.id)}
-                          className="text-green-600 hover:text-green-700"
-                        >
-                          Restore
-                        </button>
-                        <button
-                          onClick={() => handleDelete(article.id)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          Delete
-                        </button>
-                      </td>
+                      </th>
+                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Headline</th>
+                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">Author</th>
+                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell">Category</th>
+                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {articles.map((article) => (
+                      <tr key={article.id}>
+                        <td className="px-4 sm:px-6 py-4">
+                          <input
+                            type="checkbox"
+                            checked={selected.includes(article.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelected([...selected, article.id]);
+                              } else {
+                                setSelected(selected.filter(id => id !== article.id));
+                              }
+                            }}
+                          />
+                        </td>
+                        <td className="px-4 sm:px-6 py-4">
+                          <div className="text-sm font-medium text-gray-900">{article.title}</div>
+                        </td>
+                        <td className="px-4 sm:px-6 py-4 text-sm text-gray-500 hidden sm:table-cell">{article.author.name}</td>
+                        <td className="px-4 sm:px-6 py-4 text-sm text-gray-500 hidden md:table-cell">{article.category?.name || 'Uncategorized'}</td>
+                        <td className="px-4 sm:px-6 py-4 text-sm text-gray-500">
+                          {format(new Date(article.createdAt), 'MMM d, yyyy')}
+                        </td>
+                        <td className="px-4 sm:px-6 py-4 text-sm space-x-2">
+                          <button
+                            onClick={() => handleRestore(article.id)}
+                            className="text-green-600 hover:text-green-700"
+                          >
+                            Restore
+                          </button>
+                          <button
+                            onClick={() => handleDelete(article.id)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
 

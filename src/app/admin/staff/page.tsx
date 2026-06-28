@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import bcrypt from "bcryptjs";
+import AdminSidebar from "@/components/layout/admin/AdminSidebar";
 
 interface StaffMember {
   id: string;
@@ -157,38 +158,18 @@ export default function StaffPage() {
     <div className="min-h-screen bg-gray-50">
       <div className="flex">
         {/* Sidebar */}
-        <aside className="w-64 bg-white shadow-lg min-h-screen">
-          <div className="p-6 border-b">
-            <h2 className="text-xl font-bold text-gray-800">Admin Panel</h2>
-          </div>
-          <nav className="p-4">
-            <ul className="space-y-2">
-              <li><a href="/admin/dashboard" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Dashboard</a></li>
-              <li><a href="/admin/articles" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Articles</a></li>
-              <li><a href="/admin/media" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Media Library</a></li>
-              <li><a href="/admin/settings" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Settings</a></li>
-              <li><a href="/admin/categories" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Categories</a></li>
-              <li><a href="/admin/archive" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Archive</a></li>
-              <li><a href="/admin/staff" className="block px-4 py-2 text-gray-700 bg-gray-100 rounded-lg">Staff Management</a></li>
-            </ul>
-          </nav>
-          <div className="absolute bottom-0 left-0 w-64 p-4 border-t">
-            <form action="/api/auth/signout" method="POST">
-              <button type="submit" className="w-full px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg">Sign Out</button>
-            </form>
-          </div>
-        </aside>
+        <AdminSidebar />
 
         {/* Main Content */}
-        <main className="flex-1 p-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Staff Management</h1>
+        <main className="flex-1 p-4 sm:p-6 md:p-8 ">
+          <div className="mb-6 sm:mb-8">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Staff Management</h1>
             <p className="text-gray-600 mt-2">Manage staff members (Admin only)</p>
           </div>
 
           {/* Add Staff Form */}
-          <div className="bg-white rounded-lg shadow p-6 mb-8">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Add New Staff Member</h2>
+          <div className="bg-white rounded-lg shadow p-4 sm:p-6 mb-6 sm:mb-8">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Add New Staff Member</h2>
             <form onSubmit={handleAddStaff} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
@@ -245,79 +226,81 @@ export default function StaffPage() {
             <div className="text-center py-12">Loading...</div>
           ) : (
             <div className="bg-white rounded-lg shadow overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Password</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {staff.map((member) => (
-                    <tr key={member.id}>
-                      <td className="px-6 py-4 font-medium text-gray-900">{member.name}</td>
-                      <td className="px-6 py-4 text-gray-500">{member.email}</td>
-                      <td className="px-6 py-4">
-                        <select
-                          value={member.role}
-                          onChange={(e) => handleUpdateRole(member.id, e.target.value)}
-                          className="px-2 py-1 border rounded text-sm"
-                        >
-                          <option value="EDITOR">Editor</option>
-                          <option value="ADMIN">Admin</option>
-                        </select>
-                      </td>
-                      <td className="px-6 py-4">
-                        {editingPassword?.id === member.id ? (
-                          <div className="flex gap-2">
-                            <input
-                              type="password"
-                              placeholder="New password"
-                              value={editingPassword?.password || ''}
-                              onChange={(e) => setEditingPassword({ id: member.id, password: e.target.value })}
-                              className="px-2 py-1 border rounded text-sm"
-                            />
-                            <button
-                              onClick={() => handleUpdatePassword(member.id, editingPassword?.password || '')}
-                              className="text-green-600 hover:text-green-700"
-                            >
-                              Save
-                            </button>
-                            <button
-                              onClick={() => setEditingPassword(null)}
-                              className="text-gray-600 hover:text-gray-700"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => setEditingPassword({ id: member.id, password: '' })}
-                            className="text-blue-600 hover:text-blue-700"
-                          >
-                            Change Password
-                          </button>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        <button
-                          onClick={() => handleDeleteStaff(member.id)}
-                          disabled={member.id === currentUserId}
-                          className={member.id === currentUserId 
-                            ? "text-gray-400 cursor-not-allowed" 
-                            : "text-red-600 hover:text-red-700"
-                          }
-                        >
-                          {member.id === currentUserId ? 'Cannot delete yourself' : 'Delete'}
-                        </button>
-                      </td>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[600px]">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">Email</th>
+                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
+                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Password</th>
+                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {staff.map((member) => (
+                      <tr key={member.id}>
+                        <td className="px-4 sm:px-6 py-4 font-medium text-gray-900">{member.name}</td>
+                        <td className="px-4 sm:px-6 py-4 text-gray-500 hidden sm:table-cell">{member.email}</td>
+                        <td className="px-4 sm:px-6 py-4">
+                          <select
+                            value={member.role}
+                            onChange={(e) => handleUpdateRole(member.id, e.target.value)}
+                            className="px-2 py-1 border rounded text-xs sm:text-sm"
+                          >
+                            <option value="EDITOR">Editor</option>
+                            <option value="ADMIN">Admin</option>
+                          </select>
+                        </td>
+                        <td className="px-4 sm:px-6 py-4">
+                          {editingPassword?.id === member.id ? (
+                            <div className="flex gap-2">
+                              <input
+                                type="password"
+                                placeholder="New password"
+                                value={editingPassword?.password || ''}
+                                onChange={(e) => setEditingPassword({ id: member.id, password: e.target.value })}
+                                className="px-2 py-1 border rounded text-xs sm:text-sm"
+                              />
+                              <button
+                                onClick={() => handleUpdatePassword(member.id, editingPassword?.password || '')}
+                                className="text-green-600 hover:text-green-700 text-xs sm:text-sm"
+                              >
+                                Save
+                              </button>
+                              <button
+                                onClick={() => setEditingPassword(null)}
+                                className="text-gray-600 hover:text-gray-700 text-xs sm:text-sm"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => setEditingPassword({ id: member.id, password: '' })}
+                              className="text-blue-600 hover:text-blue-700 text-xs sm:text-sm"
+                            >
+                              Change Password
+                            </button>
+                          )}
+                        </td>
+                        <td className="px-4 sm:px-6 py-4">
+                          <button
+                            onClick={() => handleDeleteStaff(member.id)}
+                            disabled={member.id === currentUserId}
+                            className={member.id === currentUserId
+                              ? "text-gray-400 cursor-not-allowed text-xs sm:text-sm"
+                              : "text-red-600 hover:text-red-700 text-xs sm:text-sm"
+                            }
+                          >
+                            {member.id === currentUserId ? 'Cannot delete yourself' : 'Delete'}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
 

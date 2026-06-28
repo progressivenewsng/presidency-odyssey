@@ -3,6 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = []
 }
 
 datasource db {
@@ -173,7 +174,8 @@ model BatchJob {
   progress          Float    @default(0) // 0-100 percentage
   currentRow        Int?     // Current row being processed
   currentMessage    String?  // Current status message
-  uploadedArticles  Json?    // Array of uploaded article info
+  fileData          Json?    // Raw file data for processing
+  uploadedArticles  Json?    // Array of uploaded article info (results)
   ignoredEntries    Json?    // Array of ignored entry info
   reportUrl         String?  // URL to download the report
   startedAt         DateTime @default(now())

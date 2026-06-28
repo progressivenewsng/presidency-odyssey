@@ -131,26 +131,19 @@ export default function MediaLibraryPage() {
     <div className="min-h-screen bg-gray-50">
       <div className="flex">
         {/* Sidebar */}
-        <aside className="w-64 bg-white shadow-lg min-h-screen">
-          <AdminSidebar />
-          <div className="absolute bottom-0 left-0 w-64 p-4 border-t">
-            <form action="/api/auth/signout" method="POST">
-              <button type="submit" className="w-full px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg">Sign Out</button>
-            </form>
-          </div>
-        </aside>
+        <AdminSidebar />
 
         {/* Main Content */}
-        <main className="flex-1 p-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Media Library</h1>
+        <main className="flex-1 p-4 sm:p-6 md:p-8 ">
+          <div className="mb-6 sm:mb-8">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Media Library</h1>
             <p className="text-gray-600 mt-2">Upload and manage your images</p>
           </div>
 
           {/* Upload Section */}
-          <div className="bg-white rounded-lg shadow p-6 mb-8">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Upload New Images</h2>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+          <div className="bg-white rounded-lg shadow p-4 sm:p-6 mb-6 sm:mb-8">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Upload New Images</h2>
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-8 text-center">
               <input
                 type="file"
                 multiple
@@ -164,21 +157,21 @@ export default function MediaLibraryPage() {
                 className="cursor-pointer"
               >
                 <div className="text-gray-500">
-                  <p className="text-lg">Click to upload or drag and drop</p>
-                  <p className="text-sm mt-2">PNG, JPG, GIF up to 10MB</p>
+                  <p className="text-base sm:text-lg">Click to upload or drag and drop</p>
+                  <p className="text-xs sm:text-sm mt-2">PNG, JPG, GIF up to 10MB</p>
                 </div>
               </label>
               {selectedFiles.length > 0 && (
                 <div className="mt-4 space-y-2">
                   {selectedFiles.map((file, index) => (
-                    <div key={index} className="flex items-center gap-2 justify-center">
-                      <span className="text-sm text-gray-600">{file.name}</span>
+                    <div key={index} className="flex flex-col sm:flex-row sm:items-center gap-2 justify-center">
+                      <span className="text-xs sm:text-sm text-gray-600 truncate">{file.name}</span>
                       <input
                         type="text"
                         placeholder="Enter image name"
                         value={imageNames[index] || ''}
                         onChange={(e) => handleNameChange(index, e.target.value)}
-                        className="px-2 py-1 border border-gray-300 rounded text-sm"
+                        className="px-2 py-1 border border-gray-300 rounded text-xs sm:text-sm w-full sm:w-auto"
                         required
                       />
                     </div>
@@ -213,7 +206,7 @@ export default function MediaLibraryPage() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
                 {images.map((image) => (
                   <div key={image.id} className="bg-white rounded-lg shadow overflow-hidden">
                     <div className="aspect-square bg-gray-100">
@@ -223,15 +216,15 @@ export default function MediaLibraryPage() {
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    <div className="p-4">
-                      <p className="text-sm font-medium text-gray-900 truncate">{image.filename}</p>
-                      <p className="text-xs text-gray-500 mt-1">
+                    <div className="p-3 sm:p-4">
+                      <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">{image.filename}</p>
+                      <p className="text-[10px] sm:text-xs text-gray-500 mt-1">
                         {new Date(image.createdAt).toLocaleDateString()}
                       </p>
                       <div className="flex justify-between mt-2">
                         <button
                           onClick={() => handleDelete(image.publicId)}
-                          className="text-red-600 hover:text-red-700 text-sm"
+                          className="text-red-600 hover:text-red-700 text-xs sm:text-sm"
                         >
                           Delete
                         </button>

@@ -117,25 +117,18 @@ export default function ArticlesPage() {
     <div className="min-h-screen bg-gray-50">
       <div className="flex">
         {/* Sidebar */}
-        <aside className="w-64 bg-white shadow-lg min-h-screen">
-          <AdminSidebar />
-          <div className="absolute bottom-0 left-0 w-64 p-4 border-t">
-            <form action="/api/auth/signout" method="POST">
-              <button type="submit" className="w-full px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg">Sign Out</button>
-            </form>
-          </div>
-        </aside>
+        <AdminSidebar />
 
         {/* Main Content */}
-        <main className="flex-1 p-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Articles</h1>
+        <main className="flex-1 p-4 sm:p-6 md:p-8 ">
+          <div className="mb-6 sm:mb-8">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Articles</h1>
             <p className="text-gray-600 mt-2">Manage your news articles</p>
           </div>
 
           {/* Actions */}
-          <div className="mb-6 flex justify-between items-center">
-            <div className="flex space-x-4">
+          <div className="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
               <input
                 type="text"
                 placeholder="Search headlines..."
@@ -152,17 +145,17 @@ export default function ArticlesPage() {
             </div>
             <a
               href="/admin/articles/new"
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-center"
             >
               Publish New
             </a>
           </div>
 
           {/* Tabs */}
-          <div className="flex space-x-4 mb-6">
+          <div className="flex space-x-2 sm:space-x-4 mb-6">
             <button
               onClick={() => setActiveTab('published')}
-              className={`px-4 py-2 rounded-lg ${
+              className={`px-3 sm:px-4 py-2 rounded-lg text-sm ${
                 activeTab === 'published'
                   ? 'bg-indigo-600 text-white'
                   : 'bg-white text-gray-700 hover:bg-gray-100'
@@ -172,7 +165,7 @@ export default function ArticlesPage() {
             </button>
             <button
               onClick={() => setActiveTab('scheduled')}
-              className={`px-4 py-2 rounded-lg ${
+              className={`px-3 sm:px-4 py-2 rounded-lg text-sm ${
                 activeTab === 'scheduled'
                   ? 'bg-indigo-600 text-white'
                   : 'bg-white text-gray-700 hover:bg-gray-100'
@@ -184,7 +177,7 @@ export default function ArticlesPage() {
 
           {/* Mass Actions for Published */}
           {activeTab === 'published' && selectedPublished.length > 0 && (
-            <div className="mb-4 p-4 bg-yellow-50 rounded-lg flex justify-between items-center">
+            <div className="mb-4 p-4 bg-yellow-50 rounded-lg flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
               <span>{selectedPublished.length} article(s) selected</span>
               <button
                 onClick={handleMassArchive}
@@ -200,105 +193,107 @@ export default function ArticlesPage() {
             <div className="text-center py-12">Loading...</div>
           ) : (
             <>
-              <div className="bg-white rounded-lg shadow overflow-hidden">
-                <table className="w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      {activeTab === 'published' && (
-                        <th className="px-6 py-3 text-left">
-                          <input
-                            type="checkbox"
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setSelectedPublished(displayedArticles.map(a => a.id));
-                              } else {
-                                setSelectedPublished([]);
-                              }
-                            }}
-                          />
-                        </th>
-                      )}
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        Headline
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        Author
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        Category
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        Date
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {displayedArticles.map((article) => (
-                      <tr key={article.id}>
+              <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[600px]">
+                    <thead className="bg-gray-50">
+                      <tr>
                         {activeTab === 'published' && (
-                          <td className="px-6 py-4">
+                          <th className="px-4 sm:px-6 py-3 text-left">
                             <input
                               type="checkbox"
-                              checked={selectedPublished.includes(article.id)}
                               onChange={(e) => {
                                 if (e.target.checked) {
-                                  setSelectedPublished([...selectedPublished, article.id]);
+                                  setSelectedPublished(displayedArticles.map(a => a.id));
                                 } else {
-                                  setSelectedPublished(selectedPublished.filter(id => id !== article.id));
+                                  setSelectedPublished([]);
                                 }
                               }}
                             />
-                          </td>
+                          </th>
                         )}
-                        <td className="px-6 py-4">
-                          <div className="text-sm font-medium text-gray-900">{article.title}</div>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-500">{article.author.name}</td>
-                        <td className="px-6 py-4 text-sm text-gray-500">{article.category?.name || 'Uncategorized'}</td>
-                        <td className="px-6 py-4 text-sm text-gray-500">
-                          {activeTab === 'published' 
-                            ? format(new Date(article.createdAt), 'MMM d, yyyy')
-                            : format(new Date(article.publishedAt!), 'MMM d, yyyy HH:mm')
-                          }
-                        </td>
-                        <td className="px-6 py-4 text-sm space-x-2">
-                          <a
-                            href={`/${article.slug}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-indigo-600 hover:text-indigo-700"
-                          >
-                            View
-                          </a>
-                          <a
-                            href={`/admin/articles/${article.id}/edit`}
-                            className="text-green-600 hover:text-green-700"
-                          >
-                            Edit
-                          </a>
-                          {activeTab === 'published' ? (
-                            <button
-                              onClick={() => handleArchive(article.id)}
-                              className="text-orange-600 hover:text-orange-700"
-                            >
-                              Archive
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => handleDelete(article.id)}
-                              className="text-red-600 hover:text-red-700"
-                            >
-                              Delete
-                            </button>
-                          )}
-                        </td>
+                        <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                          Headline
+                        </th>
+                        <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">
+                          Author
+                        </th>
+                        <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell">
+                          Category
+                        </th>
+                        <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                          Date
+                        </th>
+                        <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                          Actions
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {displayedArticles.map((article) => (
+                        <tr key={article.id}>
+                          {activeTab === 'published' && (
+                            <td className="px-4 sm:px-6 py-4">
+                              <input
+                                type="checkbox"
+                                checked={selectedPublished.includes(article.id)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedPublished([...selectedPublished, article.id]);
+                                  } else {
+                                    setSelectedPublished(selectedPublished.filter(id => id !== article.id));
+                                  }
+                                }}
+                              />
+                            </td>
+                          )}
+                          <td className="px-4 sm:px-6 py-4">
+                            <div className="text-sm font-medium text-gray-900">{article.title}</div>
+                          </td>
+                          <td className="px-4 sm:px-6 py-4 text-sm text-gray-500 hidden sm:table-cell">{article.author.name}</td>
+                          <td className="px-4 sm:px-6 py-4 text-sm text-gray-500 hidden md:table-cell">{article.category?.name || 'Uncategorized'}</td>
+                          <td className="px-4 sm:px-6 py-4 text-sm text-gray-500">
+                            {activeTab === 'published'
+                              ? format(new Date(article.createdAt), 'MMM d, yyyy')
+                              : format(new Date(article.publishedAt!), 'MMM d, yyyy HH:mm')
+                            }
+                          </td>
+                          <td className="px-4 sm:px-6 py-4 text-sm space-x-2">
+                            <a
+                              href={`/${article.slug}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-indigo-600 hover:text-indigo-700"
+                            >
+                              View
+                            </a>
+                            <a
+                              href={`/admin/articles/${article.id}/edit`}
+                              className="text-green-600 hover:text-green-700"
+                            >
+                              Edit
+                            </a>
+                            {activeTab === 'published' ? (
+                              <button
+                                onClick={() => handleArchive(article.id)}
+                                className="text-orange-600 hover:text-orange-700"
+                              >
+                                Archive
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleDelete(article.id)}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                Delete
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
               {/* Pagination Controls */}
@@ -306,7 +301,7 @@ export default function ArticlesPage() {
                 const currentPagination = activeTab === 'published' ? pagination.published : pagination.scheduled;
                 const currentPage = activeTab === 'published' ? publishedPage : scheduledPage;
                 if (currentPagination.totalPages <= 1) return null;
-                
+
                 return (
                   <div className="flex items-center justify-center gap-2 mt-6 bg-white rounded-lg shadow p-4">
                     <button
@@ -353,7 +348,7 @@ export default function ArticlesPage() {
           )}
 
           {!loading && displayedArticles.length === 0 && (
-            <div className="text-center py-12 bg-white rounded-lg shadow">
+            <div className="text-center py-12 bg-white border border-gray-200 rounded-lg">
               <p className="text-gray-500">No articles found</p>
             </div>
           )}

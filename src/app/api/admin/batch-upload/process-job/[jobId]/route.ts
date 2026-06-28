@@ -12,6 +12,8 @@ export async function POST(
   const { jobId } = await params;
   
   try {
+    console.log(`[BatchJob] Starting processing for job ${jobId}`);
+    
     // Get the job
     const job = await prisma.batchJob.findUnique({
       where: { id: jobId },
@@ -19,10 +21,14 @@ export async function POST(
     });
 
     if (!job) {
+      console.error(`[BatchJob] Job ${jobId} not found`);
       return NextResponse.json({ error: 'Job not found' }, { status: 404 });
     }
 
+    console.log(`[BatchJob] Job ${jobId} status: ${job.status}, processedRows: ${job.processedRows}`);
+
     if (job.status === 'COMPLETED' || job.status === 'FAILED') {
+      console.log(`[BatchJob] Job ${jobId} already ${job.status}, returning`);
       return NextResponse.json({ job });
     }
 
@@ -32,50 +38,45 @@ export async function POST(
       data: { status: 'PROCESSING' }
     });
 
+    console.log(`[BatchJob] Updated job ${jobId} to PROCESSING`);
+
     // Get all existing categories
     const categories = await prisma.category.findMany();
     const categoryMap = new Map(categories.map(cat => [cat.name.toLowerCase(), cat.id]));
 
-    // Parse Excel file from stored data (we'll need to store the file data)
-    // For now, we'll assume the file data is passed or stored
-    // In a real implementation, you'd store the file in cloud storage
-    
-    // For this implementation, we'll process in chunks
-    // The actual file data should be stored with the job or passed separately
-    // For simplicity, we'll assume the batch upload endpoint stores the data
-    
-    // Get the job data (file should be stored as base64 or similar)
-    // This is a simplified version - in production, use cloud storage
-    
     // Process rows in chunks
     let processedCount = job.processedRows;
     const uploadedArticles: Array<{ headline: string; slug: string; state: string }> = [];
     const ignoredEntries: Array<{ reason: string; headline: string; state: string }> = [];
     const usedImagesByState = new Map<string, Set<string>>();
 
-    // Get the file data from the job (assuming it's stored)
-    // In a real implementation, you'd fetch from cloud storage
-    const fileData = job.uploadedArticles as any; // This would be the file data
+    // Get the file data from the job
+    const fileData = job.fileData as any;
+    
+    console.log(`[BatchJob] File data type: ${typeof fileData}, isArray: ${Array.isArray(fileData)}, length: ${Array.isArray(fileData) ? fileData.length : 'N/A'}`);
     
     if (!fileData || !Array.isArray(fileData)) {
-      // If no file data stored, we need to handle this differently
-      // For now, we'll mark as failed
+      console.error(`[BatchJob] Invalid file data for job ${jobId}`);
       await prisma.batchJob.update({
         where: { id: jobId },
         data: {
           status: 'FAILED',
-          error: 'File data not found',
+          error: 'File data not found or invalid',
           completedAt: new Date()
         }
       });
-      return NextResponse.json({ error: 'File data not found' }, { status: 400 });
+      return NextResponse.json({ error: 'File data not found or invalid' }, { status: 400 });
     }
 
     const data = fileData;
     const totalRows = data.length;
+    
+    console.log(`[BatchJob] Processing ${totalRows} total rows, starting from ${processedCount}`);
 
     // Process next chunk
     const endIndex = Math.min(processedCount + CHUNK_SIZE, totalRows);
+    
+    console.log(`[BatchJob] Processing chunk from ${processedCount} to ${endIndex}`);
     
     for (let i = processedCount; i < endIndex; i++) {
       const row = data[i];
@@ -194,51 +195,62 @@ export async function POST(
         }
       }
 
-      // Create article with slug retry
+      // Create article with efficient slug generation
       let article: any = null;
       let slug = baseSlug;
       let slugAttempt = 1;
-      const maxSlugAttempts = 50;
+      const maxSlugAttempts = 10;
 
-      while (slugAttempt <= maxSlugAttempts && !article) {
-        try {
-          article = await prisma.post.create({
-            data: {
-              title: headline,
-              slug,
-              content,
-              categoryId: categoryMap.get(category.toLowerCase())!,
-              authorId: job.userId,
-              flags: flagsArray,
-              status: 'PUBLISHED',
-              publishedAt: scheduledFor ? new Date(scheduledFor) : new Date(),
-              tags: {
-                connect: tagIds.map(id => ({ id }))
-              },
-              images: selectedImage ? {
-                create: {
-                  url: selectedImage.url,
-                  altText: headline,
-                  position: 0
-                }
-              } : undefined
-            }
-          });
-        } catch (error: any) {
-          if (error.code === 'P2002' && error.meta?.target?.includes('slug')) {
-            slugAttempt++;
-            slug = `${baseSlug}-${slugAttempt}`;
-          } else {
-            ignoredEntries.push({ reason: `Database error: ${error.message}`, headline, state: row['state']?.toString() });
-            break;
+      // Check if slug exists first (much faster than try/catch)
+      let existingPost = await prisma.post.findUnique({ where: { slug } });
+      
+      while (slugAttempt <= maxSlugAttempts && existingPost) {
+        slug = `${baseSlug}-${slugAttempt}`;
+        existingPost = await prisma.post.findUnique({ where: { slug } });
+        slugAttempt++;
+      }
+
+      if (existingPost) {
+        // All slags taken, skip this row
+        ignoredEntries.push({ reason: 'Slug conflict - all variations taken', headline, state: row['state']?.toString() });
+        continue;
+      }
+
+      // Now create the post with the unique slug
+      try {
+        article = await prisma.post.create({
+          data: {
+            title: headline,
+            slug,
+            content,
+            categoryId: categoryMap.get(category.toLowerCase())!,
+            authorId: job.userId,
+            flags: flagsArray,
+            status: 'PUBLISHED',
+            publishedAt: scheduledFor ? new Date(scheduledFor) : new Date(),
+            tags: {
+              connect: tagIds.map(id => ({ id }))
+            },
+            images: selectedImage ? {
+              create: {
+                url: selectedImage.url,
+                altText: headline,
+                position: 0
+              }
+            } : undefined
           }
-        }
+        });
+      } catch (error: any) {
+        console.error(`[BatchJob] Error creating article for row ${i}:`, error);
+        ignoredEntries.push({ reason: `Database error: ${error.message}`, headline, state: row['state']?.toString() });
       }
 
       if (article) {
         uploadedArticles.push({ headline, slug: article.slug, state: row['state']?.toString() });
       }
     }
+
+    console.log(`[BatchJob] Chunk complete: ${uploadedArticles.length} uploaded, ${ignoredEntries.length} ignored`);
 
     // Update job with progress
     const currentProgress = (endIndex / totalRows) * 100;
@@ -254,6 +266,7 @@ export async function POST(
     };
 
     if (isComplete) {
+      console.log(`[BatchJob] Job ${jobId} complete, generating report`);
       // Generate DOCX report
       const doc = await generateDocxReport(uploadedArticles, ignoredEntries);
       const buffer = await Packer.toBuffer(doc);
@@ -274,6 +287,8 @@ export async function POST(
       data: updateData
     });
 
+    console.log(`[BatchJob] Job ${jobId} updated: ${isComplete ? 'COMPLETED' : 'PROCESSING'}`);
+
     return NextResponse.json({ 
       job: { ...job, ...updateData },
       isComplete,
@@ -282,7 +297,7 @@ export async function POST(
     });
 
   } catch (error) {
-    console.error('Job processing error:', error);
+    console.error(`[BatchJob] Processing error for job ${jobId}:`, error);
     await prisma.batchJob.update({
       where: { id: jobId },
       data: {

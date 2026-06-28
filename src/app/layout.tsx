@@ -5,6 +5,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import FlashStory from "@/components/FlashStory";
 import { Providers } from "@/components/providers/SessionProvider";
+import FooterWrapper from "@/components/layout/FooterWrapper";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -25,7 +26,7 @@ export default function RootLayout({
           <Header />
           <FlashStory />
           <main className="min-h-screen">{children}</main>
-          <Footer />
+          <FooterWrapper />
         </Providers>
       </body>
     </html>

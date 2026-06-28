@@ -10,6 +10,16 @@ export default function BatchUploadPage() {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [uploadResult, setUploadResult] = useState<{
+    totalRows: number;
+    uploaded: number;
+    ignored: number;
+    articles: Array<{ headline: string; slug: string; state: string }>;
+    ignoredEntries: Array<{ reason: string; headline: string; state: string }>;
+  } | null>(null);
+  const [processedCount, setProcessedCount] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
+  const [currentItem, setCurrentItem] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -30,61 +40,89 @@ export default function BatchUploadPage() {
     setUploading(true);
     setError(null);
     setUploadProgress(0);
+    setUploadResult(null);
+    setProcessedCount(0);
+    setTotalCount(0);
+    setCurrentItem(null);
 
     try {
       const formData = new FormData();
       formData.append('file', file);
 
-      // Use XMLHttpRequest for progress tracking
-      await new Promise<void>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        
-        xhr.upload.addEventListener('progress', (event) => {
-          if (event.lengthComputable) {
-            let progress = Math.round((event.loaded / event.total) * 100);
-            if (progress === 100 && event.loaded < event.total) {
-              progress = 99;
-            }
-            setUploadProgress(progress);
-          }
-        });
-
-        xhr.addEventListener('load', () => {
-          setUploadProgress(100);
-          if (xhr.status === 200) {
-            try {
-              const data = JSON.parse(xhr.responseText);
-              if (data.redirectUrl) {
-                router.push(data.redirectUrl);
-                resolve();
-              } else {
-                setError('Invalid response from server');
-                reject();
-              }
-            } catch {
-              setError('Invalid response from server');
-              reject();
-            }
-          } else {
-            try {
-              const data = JSON.parse(xhr.responseText);
-              setError(data.error || 'Upload failed');
-            } catch {
-              setError('Upload failed');
-            }
-            reject();
-          }
-        });
-
-        xhr.addEventListener('error', () => {
-          setError('Failed to upload file');
-          reject();
-        });
-
-        xhr.responseType = 'json';
-        xhr.open('POST', '/api/admin/batch-upload');
-        xhr.send(formData);
+      const response = await fetch('/api/admin/batch-upload', {
+        method: 'POST',
+        body: formData,
       });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+
+      if (!reader) {
+        throw new Error('No response body');
+      }
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              
+              if (data.error) {
+                setError(data.error);
+                break;
+              }
+
+              if (data.complete) {
+                // Download the DOCX report
+                const binaryString = atob(data.report);
+                const bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                  bytes[i] = binaryString.charCodeAt(i);
+                }
+                const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `batch-upload-report-${Date.now()}.docx`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+                setUploadResult({
+                  totalRows: data.totalRows,
+                  uploaded: data.uploaded,
+                  ignored: data.ignored,
+                  articles: [],
+                  ignoredEntries: []
+                });
+                setUploadProgress(100);
+                break;
+              }
+
+              if (data.processed && data.total) {
+                setProcessedCount(data.processed);
+                setTotalCount(data.total);
+                setCurrentItem(data.current);
+                const progress = Math.round((data.processed / data.total) * 100);
+                setUploadProgress(progress);
+              }
+            } catch (e) {
+              console.error('Failed to parse SSE data:', e);
+            }
+          }
+        }
+      }
     } catch (error) {
       setError('Failed to upload file');
     } finally {
@@ -162,7 +200,9 @@ export default function BatchUploadPage() {
               {uploading && (
                 <div className="mb-4">
                   <div className="flex justify-between items-center mb-2">
-                    <p className="text-sm text-gray-700">Uploading... {uploadProgress}%</p>
+                    <p className="text-sm text-gray-700">
+                      {totalCount > 0 ? `Processing ${processedCount} of ${totalCount}` : 'Processing...'} {uploadProgress}%
+                    </p>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-3">
                     <div
@@ -170,7 +210,10 @@ export default function BatchUploadPage() {
                       style={{ width: `${uploadProgress}%` }}
                     ></div>
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">Please do not close or refresh this page</p>
+                  {currentItem && (
+                    <p className="text-xs text-gray-500 mt-2 truncate">Currently: {currentItem}</p>
+                  )}
+                  <p className="text-xs text-gray-500 mt-1">Please do not close or refresh this page</p>
                 </div>
               )}
 
@@ -183,6 +226,22 @@ export default function BatchUploadPage() {
               </button>
             </form>
           </div>
+
+          {/* Results */}
+          {uploadResult && (
+            <div className="bg-white rounded-lg shadow p-6 mb-8">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Upload Complete</h2>
+              <div className="p-4 bg-green-50 rounded-lg mb-4">
+                <p className="text-green-700">✓ Batch upload completed successfully. Your DOCX report has been downloaded.</p>
+              </div>
+              <button
+                onClick={() => setUploadResult(null)}
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+              >
+                Upload Another File
+              </button>
+            </div>
+          )}
 
           {/* Instructions */}
           <div className="bg-white rounded-lg shadow p-6">

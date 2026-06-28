@@ -161,7 +161,7 @@ export default function TeamPage() {
 
 
       {/* ── HERO ────────────────────────────────────────────────── */}
-      <section ref={heroRef} className="relative overflow-hidden" style={{ minHeight: "560px" }}>
+      <section ref={heroRef} className="relative overflow-hidden" style={{ minHeight: "min(400px, 60vh)" }}>
 
         {/* Full-bleed background image */}
         <div className="absolute inset-0">
@@ -191,16 +191,16 @@ export default function TeamPage() {
         />
 
         {/* Content */}
-        <div className="relative z-10 px-16 py-24 max-w-4xl">
+        <div className="relative z-10 px-4 sm:px-8 md:px-12 lg:px-16 py-12 sm:py-16 md:py-20 lg:py-24 max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={heroInView ? { opacity: 1, x: 0 } : {}}
             transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
           >
-            <div className="flex items-center gap-4 mb-8">
-              <div style={{ width: "40px", height: "1.5px", background: "#C8102E" }} />
+            <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
+              <div style={{ width: "32px", height: "1.5px", background: "#C8102E" }} />
               <span
-                className="text-xs font-bold uppercase tracking-widest"
+                className="text-[10px] sm:text-xs font-bold uppercase tracking-widest"
                 style={{ color: "#C8102E", letterSpacing: "0.28em" }}
               >
                 The Masthead
@@ -208,8 +208,8 @@ export default function TeamPage() {
             </div>
 
             <h1
-              className="font-serif font-black text-white leading-none mb-8"
-              style={{ fontSize: "clamp(52px, 7vw, 88px)", letterSpacing: "-0.02em" }}
+              className="font-serif font-black text-white leading-none mb-6 sm:mb-8"
+              style={{ fontSize: "clamp(32px, 7vw, 88px)", letterSpacing: "-0.02em" }}
             >
               The Minds
               <br />
@@ -219,7 +219,7 @@ export default function TeamPage() {
             </h1>
 
             <p
-              className="text-base leading-relaxed max-w-lg"
+              className="text-sm sm:text-base leading-relaxed max-w-lg"
               style={{
                 color: "#7A7470",
                 fontWeight: 300,
@@ -238,18 +238,18 @@ export default function TeamPage() {
 
       {/* ── LEADERSHIP FEATURE ─────────────────────────────────── */}
       <section
-        className="grid"
-        style={{ gridTemplateColumns: "1fr 1fr", minHeight: "480px" }}
+        className="grid grid-cols-1 lg:grid-cols-2"
+        style={{ minHeight: "min(400px, 50vh)" }}
       >
         {/* Text side */}
         <div
-          className="flex flex-col justify-center px-16 py-20"
+          className="flex flex-col justify-center px-8 sm:px-12 md:px-16 py-12 sm:py-16 md:py-20"
         >
           <LeadershipText />
         </div>
 
         {/* Image side */}
-        <div className="relative overflow-hidden" style={{ minHeight: "480px" }}>
+        <div className="relative overflow-hidden" style={{ minHeight: "min(300px, 50vh)" }}>
           <Image
             src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&h=700&fit=crop"
             alt="Executive leadership"
@@ -266,14 +266,14 @@ export default function TeamPage() {
           />
           {/* Caption */}
           <div
-            className="absolute bottom-8 right-8"
+            className="absolute bottom-4 sm:bottom-6 md:bottom-8 right-4 sm:right-6 md:right-8"
             style={{
               borderLeft: "2px solid #C8102E",
               paddingLeft: "12px",
             }}
           >
-            <p className="text-white font-serif font-bold text-base">Executive Leadership</p>
-            <p className="text-xs uppercase tracking-widest" style={{ color: "#C8102E", letterSpacing: "0.16em" }}>
+            <p className="text-white font-serif font-bold text-sm sm:text-base">Executive Leadership</p>
+            <p className="text-[10px] sm:text-xs uppercase tracking-widest" style={{ color: "#C8102E", letterSpacing: "0.16em" }}>
               Committed to Integrity
             </p>
           </div>
@@ -281,28 +281,28 @@ export default function TeamPage() {
       </section>
 
       {/* ── TEAM GRID ───────────────────────────────────────────── */}
-      <section className="px-12 py-20">
+      <section className="px-4 sm:px-8 md:px-12 py-12 sm:py-16 md:py-20">
         {/* Section header */}
         <div
-          className="flex items-baseline justify-between mb-14 pb-6"
+          className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between mb-8 sm:mb-14 pb-4 sm:pb-6"
           style={{ borderBottom: "0.5px solid #2A2420" }}
         >
           <div>
             <p
-              className="text-xs font-bold uppercase tracking-widest mb-3"
+              className="text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-2 sm:mb-3"
               style={{ color: "#C8102E", letterSpacing: "0.26em" }}
             >
               Editorial Board
             </p>
             <h2
               className="font-serif font-bold text-black"
-              style={{ fontSize: "36px", letterSpacing: "-0.01em" }}
+              style={{ fontSize: "clamp(24px, 4vw, 36px)", letterSpacing: "-0.01em" }}
             >
               Meet the Team
             </h2>
           </div>
           <p
-            className="text-xs font-semibold uppercase tracking-widest hidden md:block"
+            className="text-[10px] sm:text-xs font-semibold uppercase tracking-widest hidden sm:block mt-2 sm:mt-0"
             style={{ color: "#3A3430", letterSpacing: "0.16em" }}
           >
             Hover any portrait
@@ -310,7 +310,7 @@ export default function TeamPage() {
         </div>
 
         {/* 4-column portrait grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {teamMembers.map((member, index) => (
             <MemberCard key={member.name} member={member} index={index} />
           ))}

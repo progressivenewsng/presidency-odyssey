@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { prisma, withRetry } from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,22 +10,43 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ results: [] });
     }
 
-    const posts = await prisma.post.findMany({
-      where: {
-        status: 'PUBLISHED',
-        title: {
-          contains: query,
-          mode: 'insensitive'
-        }
-      },
-      include: {
-        author: true,
-        category: true,
-        images: true,
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 20,
-    });
+    const posts = await withRetry(() =>
+      prisma.post.findMany({
+        where: {
+          status: 'PUBLISHED',
+          title: {
+            contains: query,
+            mode: 'insensitive'
+          }
+        },
+        select: {
+          id: true,
+          slug: true,
+          title: true,
+          excerpt: true,
+          createdAt: true,
+          flags: true,
+          author: {
+            select: {
+              name: true
+            }
+          },
+          category: {
+            select: {
+              name: true
+            }
+          },
+          images: {
+            select: {
+              url: true
+            },
+            take: 1
+          }
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+      })
+    );
 
     const results = posts.map((post: any) => ({
       id: post.id,

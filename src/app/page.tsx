@@ -96,7 +96,7 @@ export default async function Home() {
 
       {/* Featured Stories Section */}
       <div className="mb-16">
-        <div className="flex items-center space-x-3 mb-10">
+        <div className="flex items-center mb-10">
           <div className="h-1 w-8 bg-red-700"></div>
           <h3 className="text-xs font-black uppercase tracking-widest text-gray-900">
             Featured Stories
@@ -149,9 +149,9 @@ export default async function Home() {
               <Link
                 href={`/${item.slug}`}
                 key={item.id}
-                className="group cursor-pointer hover:-translate-y-1 transition-transform duration-300 w-72 sm:w-80"
+                className="block group cursor-pointer hover:-translate-y-1 transition-transform duration-300 w-64 sm:w-72"
               >
-                <div className="w-full h-48 bg-slate-100 rounded-md mb-4 overflow-hidden relative shadow-xs group-hover:shadow-md transition-shadow duration-300">
+                <div className="w-full h-48 rounded-md mb-4 overflow-hidden relative shadow-xs group-hover:shadow-md transition-shadow duration-300">
                   {item.imageUrl ? (
                     <Image
                       src={item.imageUrl}

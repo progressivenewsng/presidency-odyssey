@@ -2,19 +2,26 @@ import Link from "next/link";
 import { getPostsByCategory } from "@/lib/data";
 import { notFound } from "next/navigation";
 
-export default async function CategoryPage({ 
-  params 
-}: { 
-  params: Promise<{ slug: string }> 
-}) {
+interface PageProps {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ page?: string }>;
+}
+
+export default async function CategoryPage({
+  params,
+  searchParams
+}: PageProps) {
   const { slug } = await params;
-  const categoryData = await getPostsByCategory(slug);
+  const { page = '1' } = await searchParams;
+  const currentPage = parseInt(page, 9);
+
+  const categoryData = await getPostsByCategory(slug, currentPage, 9);
 
   if (!categoryData) {
     notFound();
   }
 
-  const { category, posts } = categoryData;
+  const { category, posts, pagination } = categoryData;
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -26,7 +33,7 @@ export default async function CategoryPage({
             {category.name}
           </h1>
         </div>
-        <p className="text-gray-600">{posts.length} articles in this category</p>
+        <p className="text-gray-600">{pagination.total} articles in this category</p>
       </div>
 
       {/* Articles Grid */}
@@ -64,6 +71,33 @@ export default async function CategoryPage({
       {posts.length === 0 && (
         <div className="text-center py-12">
           <p className="text-gray-500">No articles found in this category.</p>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {pagination && pagination.totalPages > 1 && (
+        <div className="flex justify-center items-center space-x-4 mt-12">
+          {currentPage > 1 && (
+            <Link
+              href={`/category/${slug}?page=${currentPage - 1}`}
+              className="px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors"
+            >
+              Previous
+            </Link>
+          )}
+
+          <span className="text-gray-700">
+            Page {currentPage} of {pagination.totalPages}
+          </span>
+
+          {currentPage < pagination.totalPages && (
+            <Link
+              href={`/category/${slug}?page=${currentPage + 1}`}
+              className="px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors"
+            >
+              Next
+            </Link>
+          )}
         </div>
       )}
     </div>

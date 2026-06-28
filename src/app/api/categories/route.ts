@@ -1,30 +1,32 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { prisma, withRetry } from '@/lib/prisma';
 
 export async function GET() {
-  const categories = await prisma.category.findMany({
-    where: {
-      posts: {
-        some: {
-          status: 'PUBLISHED'
+  const categories = await withRetry(() => 
+    prisma.category.findMany({
+      where: {
+        posts: {
+          some: {
+            status: 'PUBLISHED'
+          }
         }
-      }
-    },
-    include: {
-      _count: {
-        select: {
-          posts: {
-            where: {
-              status: 'PUBLISHED'
+      },
+      include: {
+        _count: {
+          select: {
+            posts: {
+              where: {
+                status: 'PUBLISHED'
+              }
             }
           }
         }
+      },
+      orderBy: {
+        name: 'asc'
       }
-    },
-    orderBy: {
-      name: 'asc'
-    }
-  });
+    })
+  );
 
   return NextResponse.json({
     categories: categories.map(cat => ({

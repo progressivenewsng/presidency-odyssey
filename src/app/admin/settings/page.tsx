@@ -117,19 +117,12 @@ export default function SettingsPage() {
     <div className="min-h-screen bg-gray-50">
       <div className="flex">
         {/* Sidebar */}
-        <aside className="w-64 bg-white shadow-lg min-h-screen">
-         <AdminSidebar />
-          <div className="absolute bottom-0 left-0 w-64 p-4 border-t">
-            <form action="/api/auth/signout" method="POST">
-              <button type="submit" className="w-full px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg">Sign Out</button>
-            </form>
-          </div>
-        </aside>
+        <AdminSidebar />
 
         {/* Main Content */}
-        <main className="flex-1 p-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
+        <main className="flex-1 p-4 sm:p-6 md:p-8 ">
+          <div className="mb-6 sm:mb-8">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Settings</h1>
             <p className="text-gray-600 mt-2">Manage your account</p>
           </div>
 
@@ -141,10 +134,10 @@ export default function SettingsPage() {
             </div>
           )}
 
-          <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8">
             {/* Profile Settings */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Profile Information</h2>
+            <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+              <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Profile Information</h2>
               <form onSubmit={handleProfileUpdate} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Display Name</label>
@@ -167,8 +160,8 @@ export default function SettingsPage() {
             </div>
 
             {/* Password Settings */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Change Password</h2>
+            <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+              <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Change Password</h2>
               <form onSubmit={handlePasswordUpdate} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Current Password</label>

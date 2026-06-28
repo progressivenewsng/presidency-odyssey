@@ -1,23 +1,26 @@
 import Link from "next/link";
 import Image from "next/image";
-import { getAllNews, getNewsBySlug } from "@/lib/data";
+import { getPostsByCategory, getNewsBySlug } from "@/lib/data";
 import { notFound } from "next/navigation";
 import ReadingProgress from "@/components/layout/ReadingProgress";
 
+interface PageProps {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ page?: string }>;
+}
+
 export default async function DynamicPage({ 
-  params 
-}: { 
-  params: Promise<{ slug: string }> 
-}) {
+  params,
+  searchParams 
+}: PageProps) {
   const { slug } = await params;
+  const { page = '1' } = await searchParams;
   const categories = ["politics", "economy", "sports"];
+  const currentPage = parseInt(page, 10);
 
   // 1. Check if the URL is a category page (e.g., /politics)
   if (categories.includes(slug.toLowerCase())) {
-    const allNews = await getAllNews();
-    const filteredNews = allNews.filter(
-      (n) => n.category.toLowerCase() === slug.toLowerCase()
-    );
+    const categoryData = await getPostsByCategory(slug.toLowerCase(), currentPage, 10);
     const title = slug.charAt(0).toUpperCase() + slug.slice(1);
 
     return (
@@ -29,7 +32,7 @@ export default async function DynamicPage({
           </h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-          {filteredNews.map((item) => (
+          {categoryData?.posts.map((item: any) => (
             <Link href={`/${item.slug}`} key={item.id} className="group cursor-pointer">
               <div className="w-full h-64 bg-slate-100 rounded-md mb-6 overflow-hidden relative shadow-sm">
                 {item.imageUrl ? (
@@ -52,8 +55,35 @@ export default async function DynamicPage({
             </Link>
           ))}
         </div>
-        {filteredNews.length === 0 && (
+        {categoryData?.posts.length === 0 && (
           <p className="text-gray-500 italic">No articles found in this category.</p>
+        )}
+        
+        {/* Pagination */}
+        {categoryData?.pagination && categoryData.pagination.totalPages > 1 && (
+          <div className="flex justify-center items-center space-x-4 mt-12">
+            {currentPage > 1 && (
+              <Link 
+                href={`/${slug}?page=${currentPage - 1}`}
+                className="px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors"
+              >
+                Previous
+              </Link>
+            )}
+            
+            <span className="text-gray-700">
+              Page {currentPage} of {categoryData.pagination.totalPages}
+            </span>
+            
+            {currentPage < categoryData.pagination.totalPages && (
+              <Link 
+                href={`/${slug}?page=${currentPage + 1}`}
+                className="px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors"
+              >
+                Next
+              </Link>
+            )}
+          </div>
         )}
       </div>
     );
@@ -66,10 +96,10 @@ export default async function DynamicPage({
   return (
     <>
       <ReadingProgress />
-      <article className="container mx-auto px-4 py-16 max-w-4xl">
+      <article className="container mx-auto px-4 py-8 md:py-12 lg:py-16 max-w-4xl">
         {/* Hero Image */}
         {article.imageUrl && (
-          <div className="relative w-full h-100 md:h-125 mb-10 rounded-lg overflow-hidden">
+          <div className="relative w-full h-48 sm:h-64 md:h-80 lg:h-96 xl:h-125 mb-6 md:mb-10 rounded-lg overflow-hidden">
             <Image
               src={article.imageUrl}
               alt={article.title}
@@ -79,22 +109,22 @@ export default async function DynamicPage({
             />
           </div>
         )}
-        
-        <header className="mb-10">
-          <span className="text-red-700 text-xs font-bold tracking-widest uppercase mb-4 block">
+
+        <header className="mb-8 md:mb-10">
+          <span className="text-red-700 text-[10px] sm:text-xs font-bold tracking-widest uppercase mb-3 md:mb-4 block">
             {article.category}
           </span>
-          <h1 className="text-4xl md:text-5xl font-serif font-bold leading-tight text-gray-900 mb-6">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-serif font-bold leading-tight text-gray-900 mb-4 md:mb-6">
             {article.title}
           </h1>
-          <div className="flex items-center space-x-4 text-sm text-gray-500 font-sans border-b border-gray-100 pb-6">
+          <div className="flex items-center space-x-2 md:space-x-4 text-xs sm:text-sm text-gray-500 font-sans border-b border-gray-100 pb-4 md:pb-6">
             <span className="font-bold text-gray-900">By {article.author}</span>
             <span>•</span>
             <span>{article.date}</span>
           </div>
         </header>
-        
-        <div className="text-lg font-serif text-gray-800 leading-relaxed whitespace-pre-wrap">
+
+        <div className="text-base sm:text-lg font-serif text-gray-800 leading-relaxed whitespace-pre-wrap">
           {article.content}
         </div>
       </article>

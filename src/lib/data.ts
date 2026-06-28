@@ -20,36 +20,6 @@ export function hasFlag(item: any, flag: PostFlag): boolean {
   return item.flags?.includes(flag) || false;
 }
 
-// Get all published posts
-export async function getAllNews() {
-  const posts = await prisma.post.findMany({
-    where: { status: 'PUBLISHED' },
-    include: {
-      author: true,
-      category: true,
-      images: true,
-    },
-    orderBy: { createdAt: 'desc' },
-  });
-
-  return posts.map((post: any) => ({
-    id: post.id,
-    slug: post.slug,
-    title: post.title,
-    content: post.content,
-    category: post.category?.name || 'Uncategorized',
-    author: post.author?.name || 'Unknown',
-    date: post.createdAt?.toLocaleDateString('en-US', { 
-      month: 'long', 
-      day: 'numeric', 
-      year: 'numeric' 
-    }) || '',
-    flags: post.flags as PostFlag[] || [],
-    excerpt: post.excerpt || '',
-    imageUrl: post.images[0]?.url,
-  }));
-}
-
 // Get post by slug
 export async function getNewsBySlug(slug: string) {
   const post = await prisma.post.findUnique({
@@ -91,10 +61,28 @@ export async function getMainStory() {
         has: 'MAIN_STORY'
       }
     },
-    include: {
-      author: true,
-      category: true,
-      images: true,
+    select: {
+      id: true,
+      slug: true,
+      title: true,
+      createdAt: true,
+      flags: true,
+      author: {
+        select: {
+          name: true
+        }
+      },
+      category: {
+        select: {
+          name: true
+        }
+      },
+      images: {
+        select: {
+          url: true
+        },
+        take: 1
+      }
     },
     orderBy: { createdAt: 'desc' },
   });
@@ -124,10 +112,28 @@ export async function getEditorsPicks() {
         has: 'EDITORS_PICK'
       }
     },
-    include: {
-      author: true,
-      category: true,
-      images: true,
+    select: {
+      id: true,
+      slug: true,
+      title: true,
+      createdAt: true,
+      flags: true,
+      author: {
+        select: {
+          name: true
+        }
+      },
+      category: {
+        select: {
+          name: true
+        }
+      },
+      images: {
+        select: {
+          url: true
+        },
+        take: 1
+      }
     },
     orderBy: { createdAt: 'desc' },
     take: 10,
@@ -157,10 +163,28 @@ export async function getFeaturedStories() {
         has: 'FEATURED'
       }
     },
-    include: {
-      author: true,
-      category: true,
-      images: true,
+    select: {
+      id: true,
+      slug: true,
+      title: true,
+      createdAt: true,
+      flags: true,
+      author: {
+        select: {
+          name: true
+        }
+      },
+      category: {
+        select: {
+          name: true
+        }
+      },
+      images: {
+        select: {
+          url: true
+        },
+        take: 1
+      }
     },
     orderBy: { createdAt: 'desc' },
     take: 10,
@@ -190,10 +214,28 @@ export async function getTrendingStories() {
         has: 'TRENDING'
       }
     },
-    include: {
-      author: true,
-      category: true,
-      images: true,
+    select: {
+      id: true,
+      slug: true,
+      title: true,
+      createdAt: true,
+      flags: true,
+      author: {
+        select: {
+          name: true
+        }
+      },
+      category: {
+        select: {
+          name: true
+        }
+      },
+      images: {
+        select: {
+          url: true
+        },
+        take: 1
+      }
     },
     orderBy: { createdAt: 'desc' },
     take: 10,
@@ -223,10 +265,28 @@ export async function getPopularStories() {
         has: 'POPULAR'
       }
     },
-    include: {
-      author: true,
-      category: true,
-      images: true,
+    select: {
+      id: true,
+      slug: true,
+      title: true,
+      createdAt: true,
+      flags: true,
+      author: {
+        select: {
+          name: true
+        }
+      },
+      category: {
+        select: {
+          name: true
+        }
+      },
+      images: {
+        select: {
+          url: true
+        },
+        take: 1
+      }
     },
     orderBy: { createdAt: 'desc' },
     take: 10,
@@ -283,33 +343,65 @@ export async function getActiveCategories() {
 }
 
 // Get posts by category
-export async function getPostsByCategory(categorySlug: string) {
+export async function getPostsByCategory(categorySlug: string, page: number = 1, limit: number = 20) {
   const category = await prisma.category.findUnique({
     where: { slug: categorySlug },
-    include: {
-      posts: {
-        where: { status: 'PUBLISHED' },
-        include: {
-          author: true,
-          images: true
-        },
-        orderBy: { createdAt: 'desc' }
-      }
+    select: {
+      id: true,
+      name: true,
+      slug: true
     }
   });
 
   if (!category) return null;
+
+  const skip = (page - 1) * limit;
+
+  const posts = await prisma.post.findMany({
+    where: { 
+      status: 'PUBLISHED',
+      categoryId: category.id
+    },
+    select: {
+      id: true,
+      slug: true,
+      title: true,
+      excerpt: true,
+      createdAt: true,
+      flags: true,
+      author: {
+        select: {
+          name: true
+        }
+      },
+      images: {
+        select: {
+          url: true
+        },
+        take: 1
+      }
+    },
+    orderBy: { createdAt: 'desc' },
+    skip,
+    take: limit
+  });
+
+  const total = await prisma.post.count({
+    where: { 
+      status: 'PUBLISHED',
+      categoryId: category.id
+    }
+  });
 
   return {
     category: {
       name: category.name,
       slug: category.slug
     },
-    posts: category.posts.map(post => ({
+    posts: posts.map(post => ({
       id: post.id,
       slug: post.slug,
       title: post.title,
-      content: post.content,
       category: category.name,
       author: post.author?.name || 'Unknown',
       date: post.createdAt?.toLocaleDateString('en-US', { 
@@ -320,6 +412,12 @@ export async function getPostsByCategory(categorySlug: string) {
       flags: post.flags as PostFlag[] || [],
       excerpt: post.excerpt || '',
       imageUrl: post.images[0]?.url
-    }))
+    })),
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit)
+    }
   };
 }
