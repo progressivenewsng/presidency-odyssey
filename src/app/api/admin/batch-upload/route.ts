@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
 
           // Process each row
           for (let i = 0; i < data.length; i++) {
-            const row = data[i];
+            const row = data[i] as Record<string, unknown>;
             const headline = row['headline']?.toString();
             const content = row['content']?.toString();
             const category = row['category']?.toString();
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
             }
 
             if (!categoryMap.has(category.toLowerCase())) {
-              ignoredEntries.push({ reason: 'Category not found', headline, state });
+              ignoredEntries.push({ reason: 'Category not found', headline, state: state || 'Unknown'});
               sendEvent({ processed: i + 1, total: data.length, current: headline });
               continue;
             }
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
             }
 
             if (existingPost) {
-              ignoredEntries.push({ reason: 'Slug conflict', headline, state });
+              ignoredEntries.push({ reason: 'Slug conflict', headline, state: state || 'Unknown' });
               sendEvent({ processed: i + 1, total: data.length, current: headline });
               continue;
             }
@@ -117,11 +117,11 @@ export async function POST(request: NextRequest) {
               return pattern.test(filename);
             });
 
-            if (!usedImagesByState.has(state)) {
-              usedImagesByState.set(state, new Set());
+            if (!usedImagesByState.has(state || "president")) {
+              usedImagesByState.set(state || "president", new Set());
             }
 
-            const usedInThisBatch = usedImagesByState.get(state)!;
+            const usedInThisBatch = usedImagesByState.get(state || "president")!;
             let selectedImage = null;
             
             if (stateImages.length > 0) {
@@ -149,7 +149,7 @@ export async function POST(request: NextRequest) {
                   content,
                   categoryId: categoryMap.get(category.toLowerCase())!,
                   authorId: session.user?.id || '',
-                  flags: flagsArray,
+                  flags: flagsArray as any,
                   status: 'PUBLISHED',
                   publishedAt: scheduledFor ? new Date(scheduledFor) : new Date(),
                   tags: { connect: tagIds.map(id => ({ id })) },
@@ -158,9 +158,9 @@ export async function POST(request: NextRequest) {
                   } : undefined
                 }
               });
-              uploadedArticles.push({ headline, slug: article.slug, state });
+              uploadedArticles.push({ headline, slug: article.slug, state: state || 'president' });
             } catch (error: any) {
-              ignoredEntries.push({ reason: `Database error: ${error.message}`, headline, state });
+              ignoredEntries.push({ reason: `Database error: ${error.message}`, headline, state: state || 'Unknown' });
             }
 
             // Send progress update
