@@ -246,7 +246,7 @@ async function generateDocxReport(
               spacing: { before: 200, after: 100 }
             }),
             new Paragraph({
-              text: `https://presidency-odyssey-k51t.vercel.app/${article.slug}`,
+              text: `https://presidencyodyssey.ng/${article.slug}`,
               spacing: { after: 300 }
             })
           );
@@ -306,7 +306,7 @@ async function generateDocxReport(
               spacing: { before: 200, after: 100 }
             }),
             new Paragraph({
-              text: `https://presidency-odyssey-k51t.vercel.app/${article.slug}`,
+              text: `https://presidencyodyssey.ng/${article.slug}`,
               spacing: { after: 300 }
             })
           );
