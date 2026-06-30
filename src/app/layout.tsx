@@ -10,7 +10,7 @@ import FooterWrapper from "@/components/layout/FooterWrapper";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Presidency Odyssey - Report Facts, Valuing Truth",
+  title: "Presidency Odyssey - ....WE REPORT THE FACTS, WE VALUE THE TRUTH",
   description: "Latest updates from Nigerian news",
 };
 

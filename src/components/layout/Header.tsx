@@ -207,7 +207,7 @@ export default function Header() {
               PRESIDENCY <span className="text-red-700"><Image  src={logoNBG} alt="Logo" className="inline object-contain w-20 h-10 sm:w-24 sm:h-12 md:w-32 md:h-16 lg:w-48 lg:h-24" width={200} height={100}/></span>
             </h1>
             <p className="mt-3 text-[9px] sm:text-[10px] md:text-[11px] font-bold uppercase tracking-[0.3em] sm:tracking-[0.35em] md:tracking-[0.4em] text-gray-400">
-              Reporting Facts • Valuing Truth
+              ....WE REPORT THE FACTS, WE VALUE THE TRUTH
             </p>
           </Link>
         </div>

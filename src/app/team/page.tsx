@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useInView } from "framer-motion";
+import dg from "../../assets/dg.jpg";
 
 interface TeamMember {
   name: string;
@@ -191,7 +192,7 @@ export default function TeamPage() {
         />
 
         {/* Content */}
-        <div className="relative z-10 px-4 sm:px-8 md:px-12 lg:px-16 py-12 sm:py-16 md:py-20 lg:py-24 max-w-4xl mx-auto">
+        <div className="relative z-10 px-4 sm:px-8 md:px-12 lg:px-16 py-12 sm:py-16 md:py-20 lg:py-24 max-w-4xl mx-auto lg:mx-0 ">
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={heroInView ? { opacity: 1, x: 0 } : {}}
@@ -243,19 +244,18 @@ export default function TeamPage() {
       >
         {/* Text side */}
         <div
-          className="flex flex-col justify-center px-8 sm:px-12 md:px-16 py-12 sm:py-16 md:py-20"
+          className="flex-2 flex-col justify-center px-8 sm:px-12 md:px-16 py-12 sm:py-16 md:py-20"
         >
           <LeadershipText />
         </div>
 
         {/* Image side */}
-        <div className="relative overflow-hidden" style={{ minHeight: "min(300px, 50vh)" }}>
+        <div className=" bg-indigo-400 flex-1 relative overflow-hidden w-full" style={{ height: "600px"}}>
           <Image
-            src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&h=700&fit=crop"
+            src={dg}
             alt="Executive leadership"
             fill
-            className="object-cover transition-all duration-1000"
-            style={{ filter: "grayscale(25%)" }}
+            className="transition-all duration-1000 object-contain"
           />
           <div
             className="absolute inset-0 pointer-events-none"
@@ -272,9 +272,9 @@ export default function TeamPage() {
               paddingLeft: "12px",
             }}
           >
-            <p className="text-white font-serif font-bold text-sm sm:text-base">Executive Leadership</p>
-            <p className="text-[10px] sm:text-xs uppercase tracking-widest" style={{ color: "#C8102E", letterSpacing: "0.16em" }}>
-              Committed to Integrity
+            <p className="text-white font-serif font-bold text-sm sm:text-base">Mr. Folorunso S. Aluko</p>
+            <p className="text-[10px] sm:text-xs uppercase tracking-widest font-bold" style={{ color: "#C8102E", letterSpacing: "0.16em" }}>
+              EDITOR-IN-CHIEF
             </p>
           </div>
         </div>
@@ -310,11 +310,11 @@ export default function TeamPage() {
         </div>
 
         {/* 4-column portrait grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {teamMembers.map((member, index) => (
             <MemberCard key={member.name} member={member} index={index} />
           ))}
-        </div>
+        </div> */}
       </section>
 
     </div>
@@ -334,7 +334,7 @@ function LeadershipText() {
       animate={inView ? { opacity: 1, x: 0 } : {}}
       transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
     >
-      <div className="flex items-center gap-4 mb-8">
+      <div className="flex items-center justify-center lg:justify-start gap-4 mb-8">
         <div style={{ width: "32px", height: "1.5px", background: "#C8102E" }} />
         <span
           className="text-xs font-bold uppercase tracking-widest"
@@ -345,7 +345,7 @@ function LeadershipText() {
       </div>
 
       <h2
-        className="font-serif font-bold text-black leading-tight mb-6"
+        className="flex font-serif font-bold text-black leading-tight mb-6 justify-center lg:justify-start"
         style={{ fontSize: "clamp(28px, 3vw, 40px)" }}
       >
         A tradition of
@@ -354,20 +354,20 @@ function LeadershipText() {
       </h2>
 
       <p
-        className="text-sm leading-relaxed mb-4"
-        style={{ color: "#6B6560", fontWeight: 300, maxWidth: "400px" }}
+        className="flex text-sm leading-relaxed mb-4 justify-center lg:justify-start"
+        style={{ color: "#6B6560", fontWeight: 300,  }}
       >
-        Our leadership team brings decades of combined experience from some of
+        Our leadership team brings decades of combined experience from some of 
         the world's most respected news organisations — dedicated to delivering
         accurate, unbiased journalism that informs and empowers.
       </p>
 
       <p
-        className="text-sm leading-relaxed"
-        style={{ color: "#6B6560", fontWeight: 300, maxWidth: "400px" }}
+        className="flex text-sm leading-relaxed justify-center lg:justify-start"
+        style={{ color: "#6B6560", fontWeight: 300,}}
       >
-        With expertise spanning politics, economics, sports, and national
-        relations, every story meets the highest standards of journalistic
+        With expertise spanning politics, economics, sports, and national 
+        relations, every story meets the highest standards of journalistic 
         integrity and depth.
       </p>
     </motion.div>
