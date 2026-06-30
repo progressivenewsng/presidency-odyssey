@@ -357,18 +357,14 @@ function LeadershipText() {
         className="flex text-sm leading-relaxed mb-4 justify-center lg:justify-start"
         style={{ color: "#6B6560", fontWeight: 300,  }}
       >
-        Our leadership team brings decades of combined experience from some of 
-        the world's most respected news organisations — dedicated to delivering
-        accurate, unbiased journalism that informs and empowers.
+        Folorunso S. Aluko is a seasoned Political Scientist, Psephologist, Leadership Expert, Public Administrator and Kingdom Steward with distinguished experience across academia, governance, public policy, political strategy, ICT-driven public sector reform and human capital development. He serves as Director General and Chief Executive Officer of the Progressive Governors Forum, Abuja, where he provides strategic leadership, institutional coordination and policy support for governance and political engagement in Nigeria.
       </p>
 
       <p
         className="flex text-sm leading-relaxed justify-center lg:justify-start"
         style={{ color: "#6B6560", fontWeight: 300,}}
       >
-        With expertise spanning politics, economics, sports, and national 
-        relations, every story meets the highest standards of journalistic 
-        integrity and depth.
+         He is also Chair of the Board of The Development Chronicles and Editor-in-Chief of The Presidency Odyssey, contributing meaningfully to national discourse, leadership development and governance-focused public communication. A former academic and public-sector leader, Pastor Aluko is committed to integrity, service, ethical leadership and national development. He is also President of Covenant Leadership Ministry International.
       </p>
     </motion.div>
   );
