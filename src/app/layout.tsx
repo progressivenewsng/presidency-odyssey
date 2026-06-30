@@ -11,7 +11,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Presidency Odyssey - ....WE REPORT THE FACTS, WE VALUE THE TRUTH",
-  description: "Latest updates from Nigerian news",
+  description: "Latest updates from Nigeria",
 };
 
 export default function RootLayout({
