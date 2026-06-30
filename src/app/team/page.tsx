@@ -229,8 +229,8 @@ export default function TeamPage() {
               }}
             >
               Dedicated to reporting facts and valuing the truth — through
-              rigorous journalistic standards and decades of earned experience
-              across Africa and the world.
+              rigorous journalistic standards and earned experience
+              across Nigeria.
             </p>
           </motion.div>
         </div>
