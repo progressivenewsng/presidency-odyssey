@@ -10,8 +10,8 @@ import FooterWrapper from "@/components/layout/FooterWrapper";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Presidency Odyssey - Nigerian Politics News",
-  description: "Latest news and updates from Nigerian politics and governance",
+  title: "Presidency Odyssey - Report Facts, Valuing Truth",
+  description: "Latest updates from Nigerian news",
 };
 
 export default function RootLayout({
