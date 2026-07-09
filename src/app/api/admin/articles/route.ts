@@ -3,6 +3,31 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
+function normalizeSlug(value: string) {
+  const slug = value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/(^-|-$)/g, '');
+
+  return slug || 'article';
+}
+
+async function generateUniqueSlug(title: string) {
+  const baseSlug = normalizeSlug(title);
+
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const slug = attempt === 0 ? baseSlug : `${baseSlug}-${attempt + 1}`;
+    const existing = await prisma.post.findUnique({ where: { slug }, select: { id: true } });
+
+    if (!existing) {
+      return slug;
+    }
+  }
+
+  return `${baseSlug}-${Date.now()}`;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -121,48 +146,58 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Generate slug from title
-    const slug = data.title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '');
+    const slug = await generateUniqueSlug(data.title);
 
     // Handle tags
     const tagConnects = data.tags?.map((tagName: string) => ({
       where: { name: tagName },
-      create: { name: tagName, slug: tagName.toLowerCase().replace(/\s+/g, '-') }
+      create: { name: tagName, slug: normalizeSlug(tagName) }
     })) || [];
 
-    const article = await prisma.post.create({
-      data: {
-        title: data.title,
-        slug,
-        content: data.content,
-        excerpt: data.excerpt,
-        categoryId: data.categoryId,
-        authorId: session.user?.id || '',
-        flags: data.flags || [],
-        status: 'PUBLISHED',
-        publishedAt: data.scheduledFor ? new Date(data.scheduledFor) : new Date(),
-        tags: {
-          connectOrCreate: tagConnects
+    const createArticle = async (articleSlug: string) => {
+      return prisma.post.create({
+        data: {
+          title: data.title,
+          slug: articleSlug,
+          content: data.content,
+          excerpt: data.excerpt,
+          categoryId: data.categoryId,
+          authorId: session.user?.id || '',
+          flags: data.flags || [],
+          status: 'PUBLISHED',
+          publishedAt: data.scheduledFor ? new Date(data.scheduledFor) : new Date(),
+          tags: {
+            connectOrCreate: tagConnects
+          },
+          images: {
+            create: data.images?.map((img: any) => ({
+              url: img.url,
+              altText: img.altText,
+              position: img.position
+            })) || []
+          }
         },
-        images: {
-          create: data.images?.map((img: any) => ({
-            url: img.url,
-            altText: img.altText,
-            position: img.position
-          })) || []
+        include: {
+          tags: true,
+          images: true,
+          category: true
         }
-      },
-      include: {
-        tags: true,
-        images: true,
-        category: true
-      }
-    });
+      });
+    };
 
-    return NextResponse.json({ success: true, article });
+    try {
+      const article = await createArticle(slug);
+      return NextResponse.json({ success: true, article });
+    } catch (error: any) {
+      console.error('Create article error:', error);
+
+      if (error?.code === 'P2002') {
+        const retryArticle = await createArticle(`${slug}-${Date.now()}`);
+        return NextResponse.json({ success: true, article: retryArticle });
+      }
+
+      throw error;
+    }
 
   } catch (error) {
     console.error('Create error:', error);

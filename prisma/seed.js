@@ -1,8 +1,8 @@
-const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
-const prisma = new PrismaClient();
+require('tsx/cjs').register();
+const { prisma } = require('../src/lib/prisma.ts');
 
 async function main() {
     console.log('Starting seed...');
