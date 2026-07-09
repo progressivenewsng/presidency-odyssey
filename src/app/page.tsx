@@ -3,6 +3,9 @@ import { getMainStory, getEditorsPicks, getFeaturedStories, getTrendingStories, 
 import Image from "next/image";
 import NewsCarousel from "@/components/NewsCarousel";
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function Home() {
   console.log('Page loaded, fetching real data...');
 

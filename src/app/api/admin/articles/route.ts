@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { revalidatePath } from 'next/cache';
 
 function normalizeSlug(value: string) {
   const slug = value
@@ -185,14 +186,29 @@ export async function POST(request: NextRequest) {
       });
     };
 
+    const category = await prisma.category.findUnique({
+      where: { id: data.categoryId },
+      select: { slug: true }
+    });
+
     try {
       const article = await createArticle(slug);
+      revalidatePath('/');
+      if (category?.slug) {
+        revalidatePath(`/${category.slug}`);
+      }
+      revalidatePath(`/${article.slug}`);
       return NextResponse.json({ success: true, article });
     } catch (error: any) {
       console.error('Create article error:', error);
 
       if (error?.code === 'P2002') {
         const retryArticle = await createArticle(`${slug}-${Date.now()}`);
+        revalidatePath('/');
+        if (category?.slug) {
+          revalidatePath(`/${category.slug}`);
+        }
+        revalidatePath(`/${retryArticle.slug}`);
         return NextResponse.json({ success: true, article: retryArticle });
       }
 

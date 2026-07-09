@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { revalidatePath } from 'next/cache';
 
 export async function POST(
   request: NextRequest,
@@ -17,7 +18,8 @@ export async function POST(
     const { id } = await params;
 
     const article = await prisma.post.findUnique({
-      where: { id }
+      where: { id },
+      select: { slug: true, category: { select: { slug: true } } }
     });
 
     if (!article) {
@@ -31,6 +33,12 @@ export async function POST(
         status: 'ARCHIVED'
       }
     });
+
+    revalidatePath('/');
+    if (article.category?.slug) {
+      revalidatePath(`/${article.category.slug}`);
+    }
+    revalidatePath(`/${article.slug}`);
 
     return NextResponse.json({ success: true });
 

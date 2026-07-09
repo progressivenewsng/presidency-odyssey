@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { revalidatePath } from 'next/cache';
 
 export async function GET(
   request: NextRequest,
@@ -55,7 +56,7 @@ export async function PUT(
     // Get existing article to preserve slug if not provided
     const existingArticle = await prisma.post.findUnique({
       where: { id },
-      select: { slug: true }
+      select: { slug: true, categoryId: true, category: { select: { slug: true } } }
     });
 
     if (!existingArticle) {
@@ -64,6 +65,9 @@ export async function PUT(
 
     // Generate slug from title if needed, otherwise keep existing
     const slug = body.slug || existingArticle.slug;
+    const nextCategory = body.categoryId
+      ? await prisma.category.findUnique({ where: { id: body.categoryId }, select: { slug: true } })
+      : null;
 
     // Update article
     const article = await prisma.post.update({
@@ -97,6 +101,15 @@ export async function PUT(
       });
     }
 
+    revalidatePath('/');
+    if (existingArticle.category?.slug) {
+      revalidatePath(`/${existingArticle.category.slug}`);
+    }
+    if (nextCategory?.slug && nextCategory.slug !== existingArticle.category?.slug) {
+      revalidatePath(`/${nextCategory.slug}`);
+    }
+    revalidatePath(`/${slug}`);
+
     return NextResponse.json({ article });
 
   } catch (error) {
@@ -118,9 +131,24 @@ export async function DELETE(
 
     const { id } = await params;
 
+    const article = await prisma.post.findUnique({
+      where: { id },
+      select: { slug: true, category: { select: { slug: true } } }
+    });
+
+    if (!article) {
+      return NextResponse.json({ error: 'Article not found' }, { status: 404 });
+    }
+
     await prisma.post.delete({
       where: { id }
     });
+
+    revalidatePath('/');
+    if (article.category?.slug) {
+      revalidatePath(`/${article.category.slug}`);
+    }
+    revalidatePath(`/${article.slug}`);
 
     return NextResponse.json({ success: true });
 
