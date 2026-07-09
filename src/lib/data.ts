@@ -52,13 +52,18 @@ export function hasFlag(item: any, flag: PostFlag): boolean {
   return item.flags?.includes(flag) || false;
 }
 
-// Safe database query with fallback
+// Safe database query that surfaces failures instead of hiding them behind mock content.
 async function safeQuery<T>(queryFn: () => Promise<T>, fallback: T): Promise<T> {
   try {
     return await queryFn();
   } catch (error) {
-    console.error('Database query failed, using fallback data:', error);
-    return fallback;
+    console.error('Database query failed:', error);
+
+    if (Array.isArray(fallback)) {
+      return [] as T;
+    }
+
+    return null as T;
   }
 }
 
