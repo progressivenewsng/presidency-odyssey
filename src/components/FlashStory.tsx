@@ -43,7 +43,7 @@ export default function FlashStory() {
     <div className="w-full bg-red-700 border-y border-red-800 overflow-hidden hover:bg-white transition-colors duration-300">
       <div className="flex items-center">
         {/* Flash Story Label */}
-        <div className="bg-red-900 hover:bg-red-700 px-4 py-3 shrink-0 transition-colors duration-300 flex items-center gap-2">
+        <div className="bg-red-900 hover:bg-red-700 px-4 py-3 shrink-0 transition-colors duration-300 hidden md:flex items-center gap-2">
           <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
           <span className="text-white font-black text-xs uppercase tracking-widest">
             Flash Story
